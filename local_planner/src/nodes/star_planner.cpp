@@ -13,10 +13,11 @@ void StarPlanner::dynamicReconfigureSetStarParams(
   tree_discount_factor_ = config.tree_discount_factor_;
 }
 
-void StarPlanner::setParams(const double& min_cloud_size, const double& min_dist_backoff,
-                            const nav_msgs::GridCells& path_waypoints, const double& curr_yaw,
+void StarPlanner::setParams(const double& min_cloud_size,
+                            const double& min_dist_backoff,
+                            const nav_msgs::GridCells& path_waypoints,
+                            const double& curr_yaw,
                             const double& min_realsense_dist) {
-
   path_waypoints_ = path_waypoints;
   curr_yaw_ = curr_yaw;
   min_cloud_size_ = min_cloud_size;
@@ -24,9 +25,12 @@ void StarPlanner::setParams(const double& min_cloud_size, const double& min_dist
   min_realsense_dist_ = min_realsense_dist;
 }
 
-void StarPlanner::setPose(const geometry_msgs::PoseStamped& pose) { pose_ = pose; }
+void StarPlanner::setPose(const geometry_msgs::PoseStamped& pose) {
+  pose_ = pose;
+}
 
-void StarPlanner::setCloud(const std::vector<pcl::PointCloud<pcl::PointXYZ>>& complete_cloud) {
+void StarPlanner::setCloud(
+    const std::vector<pcl::PointCloud<pcl::PointXYZ>>& complete_cloud) {
   complete_cloud_ = complete_cloud;
 }
 
@@ -80,10 +84,10 @@ double StarPlanner::treeCostFunction(int node_number) {
   int last_e = tree_[origin].last_e_;
   int last_z = tree_[origin].last_z_;
 
-  double smooth_cost =
-      5*(2 * indexAngleDifference(z, last_z) + 5 * indexAngleDifference(e, last_e));
-  if(indexAngleDifference(z, last_z) > 100){
-	  smooth_cost = HUGE_VAL;
+  double smooth_cost = 5 * (2 * indexAngleDifference(z, last_z) +
+                            5 * indexAngleDifference(e, last_e));
+  if (indexAngleDifference(z, last_z) > 100) {
+    smooth_cost = HUGE_VAL;
   }
 
   double smooth_cost_to_old_tree = 0.0;
@@ -197,7 +201,7 @@ void StarPlanner::buildLookAheadTree() {
       histogram.downsample();
       findFreeDirections(histogram, 25, path_candidates, path_selected,
                          path_rejected, path_blocked, path_waypoints_,
-						 cost_path_candidates, goal_, pose_,
+                         cost_path_candidates, goal_, pose_,
                          origin_origin_position, goal_cost_param_,
                          smooth_cost_param_, height_change_cost_param_adapted_,
                          height_change_cost_param_, false, 2 * ALPHA_RES);
