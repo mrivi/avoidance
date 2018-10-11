@@ -615,7 +615,7 @@ void LocalPlanner::getAvoidanceOutput(avoidanceOutput &out) {
   out.max_speed = max_speed_;
   out.velocity_sigmoid_slope = velocity_sigmoid_slope_;
   out.last_path_time = last_path_time_;
-  out.box_radius = histogram_box_.radius_;
+  out.box_radius = histogram_box_size_.xmin_;
 
   out.use_avoid_sphere = use_avoid_sphere_;
   out.avoid_sphere_age = avoid_sphere_age_;
