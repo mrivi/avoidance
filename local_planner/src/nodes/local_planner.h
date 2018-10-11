@@ -73,6 +73,7 @@ struct avoidanceOutput {
   int avoid_sphere_age;
   geometry_msgs::Point avoid_centerpoint;
   double avoid_radius;
+  double box_radius;
 
   bool use_ground_detection;
   bool over_obstacle;
@@ -83,6 +84,7 @@ struct avoidanceOutput {
   geometry_msgs::Point back_off_point;
   geometry_msgs::Point back_off_start_point;
   double min_dist_backoff;
+  double distance_to_closest_point;
 
   geometry_msgs::PoseStamped take_off_pose;
   geometry_msgs::PoseStamped offboard_pose;
