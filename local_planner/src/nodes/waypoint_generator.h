@@ -68,6 +68,8 @@ class WaypointGenerator {
   double speed_ = 1.0;
   int e_FOV_max_, e_FOV_min_;
 
+  double closest_distance_ = 7.0;
+
   geometry_msgs::Point hover_position_;
   geometry_msgs::PoseStamped last_position_waypoint_;
   Eigen::Vector2f last_velocity_{0.f, 0.f}; ///< last vehicle's velocity

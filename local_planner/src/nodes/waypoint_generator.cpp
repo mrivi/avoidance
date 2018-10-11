@@ -249,20 +249,36 @@ void WaypointGenerator::smoothWaypoint(double dt) {
 }
 
 void WaypointGenerator::adaptSpeed() {
-  ros::Duration since_last_velocity = ros::Time::now() - velocity_time_;
-  double since_last_velocity_sec = since_last_velocity.toSec();
+
+  double since_last_velocity_sec = (ros::Time::now() - velocity_time_).toSec();
+
+  // set waypoint to correct speed
+  geometry_msgs::Point pose_to_wp;
+  pose_to_wp.x = output_.adapted_goto_position.x - pose_.pose.position.x;
+  pose_to_wp.y = output_.adapted_goto_position.y - pose_.pose.position.y;
+  pose_to_wp.z = output_.adapted_goto_position.z - pose_.pose.position.z;
+  normalize(pose_to_wp);
+
+  // calculate correction for computation delay
+  double since_update_sec = (ros::Time::now() - update_time_).toSec();
+  double delta_dist = since_update_sec * curr_vel_magnitude_;
 
   if (!planner_info_.obstacle_ahead) {
     speed_ = std::min(speed_, planner_info_.max_speed);
     speed_ = velocityLinear(planner_info_.max_speed, 0.0,
                             planner_info_.velocity_sigmoid_slope, speed_,
                             since_last_velocity_sec);
+    speed_ += delta_dist;
   } else {
-    speed_ = std::min(speed_, planner_info_.min_speed);
-    speed_ = velocityLinear(planner_info_.min_speed, 0.0,
-                            planner_info_.velocity_sigmoid_slope, speed_,
-                            since_last_velocity_sec);
+
+    if (std::isfinite(planner_info_.distance_to_closest_point)) {
+      closest_distance_ = planner_info_.distance_to_closest_point;
+    }
+
+    double m = planner_info_.max_speed / (planner_info_.box_radius );
+    speed_ = m * (closest_distance_ - delta_dist );
   }
+
 
   // check if new point lies in FOV
   int e_angle =
@@ -290,7 +306,9 @@ void WaypointGenerator::adaptSpeed() {
       double angle_diff = std::abs(ALPHA_RES * ind_dist);
       double hover_angle = 30;
       angle_diff = std::min(angle_diff, hover_angle);
-      speed_ = speed_ * (1.0 - angle_diff / hover_angle);
+      if (speed_ > 0.0) {
+        speed_ = speed_ * (1.0 - angle_diff / hover_angle);
+      }
       only_yawed_ = false;
       if (speed_ < 0.01) {
         only_yawed_ = true;
@@ -298,12 +316,6 @@ void WaypointGenerator::adaptSpeed() {
     }
   }
   velocity_time_ = ros::Time::now();
-
-  // calculate correction for computation delay
-  ros::Duration since_update = ros::Time::now() - update_time_;
-  double since_update_sec = since_update.toSec();
-  double delta_dist = since_update_sec * curr_vel_magnitude_;
-  speed_ += delta_dist;
 
   //break before goal: if the vehicle is closer to the goal than a velocity
   //dependent distance, the speed is limited
@@ -325,15 +337,11 @@ void WaypointGenerator::adaptSpeed() {
 	  speed_ = std::max(speed_, param_.min_speed_close_to_goal);
   }
 
-  // set waypoint to correct speed
-  geometry_msgs::Point pose_to_wp;
-  pose_to_wp.x = output_.adapted_goto_position.x - pose_.pose.position.x;
-  pose_to_wp.y = output_.adapted_goto_position.y - pose_.pose.position.y;
-  pose_to_wp.z = output_.adapted_goto_position.z - pose_.pose.position.z;
-  normalize(pose_to_wp);
+  ROS_INFO("\033[1;31m[WG] speed_ %f \033[0m \n", speed_);
+
   pose_to_wp.x *= speed_;
   pose_to_wp.y *= speed_;
-  pose_to_wp.z *= speed_;
+  pose_to_wp.z = (output_.adapted_goto_position.z - pose_.pose.position.z) > 1.0 ? pose_to_wp.z : (output_.adapted_goto_position.z - pose_.pose.position.z);
 
   output_.adapted_goto_position.x = pose_.pose.position.x + pose_to_wp.x;
   output_.adapted_goto_position.y = pose_.pose.position.y + pose_to_wp.y;
