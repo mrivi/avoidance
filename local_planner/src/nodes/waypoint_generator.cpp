@@ -260,7 +260,7 @@ void WaypointGenerator::smoothWaypoint(double dt) {
 void WaypointGenerator::adaptSpeed() {
   double since_last_velocity_sec = (ros::Time::now() - velocity_time_).toSec();
 
-  // set waypoint to correct speed
+  // normalize vector from current position to position setpoint
   geometry_msgs::Point pose_to_wp;
   pose_to_wp.x = output_.adapted_goto_position.x - pose_.pose.position.x;
   pose_to_wp.y = output_.adapted_goto_position.y - pose_.pose.position.y;
@@ -272,6 +272,7 @@ void WaypointGenerator::adaptSpeed() {
   double delta_dist = since_update_sec * curr_vel_magnitude_;
 
   if (!planner_info_.obstacle_ahead) {
+    // linearly increase the speed to max_speed if there isn't obstacle
     speed_ = std::min(speed_, planner_info_.max_speed);
     speed_ = velocityLinear(planner_info_.max_speed, 0.0,
                             planner_info_.velocity_sigmoid_slope, speed_,
@@ -282,6 +283,8 @@ void WaypointGenerator::adaptSpeed() {
       closest_distance_ = planner_info_.distance_to_closest_point;
     }
 
+    // if there is an obstacle linearly decrease the speed based
+    // on the distance to the obstacle
     double m = planner_info_.max_speed / (planner_info_.box_radius);
     speed_ = m * (closest_distance_ - delta_dist);
   }
@@ -315,9 +318,7 @@ void WaypointGenerator::adaptSpeed() {
       double angle_diff = std::abs(ALPHA_RES * ind_dist);
       double hover_angle = 30;
       angle_diff = std::min(angle_diff, hover_angle);
-      if (speed_ > 0.0) {
-        speed_ = speed_ * (1.0 - angle_diff / hover_angle);
-      }
+      speed_ = speed_ * (1.0 - angle_diff / hover_angle);
       only_yawed_ = false;
       if (speed_ < 0.01) {
         only_yawed_ = true;
@@ -354,6 +355,7 @@ void WaypointGenerator::adaptSpeed() {
 
   ROS_INFO("\033[1;31m[WG] speed_ %f \033[0m \n", speed_);
 
+  // adjust the setpoint speed
   pose_to_wp.x *= speed_;
   pose_to_wp.y *= speed_;
   pose_to_wp.z =
