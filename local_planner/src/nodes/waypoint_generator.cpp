@@ -117,18 +117,12 @@ void WaypointGenerator::updateState(geometry_msgs::PoseStamped act_pose,
 
 // if there isn't any obstacle in front of the UAV, increase cruising speed
 void WaypointGenerator::goFast() {
-  tf::Vector3 vec;
-  vec.setX(goal_.x - pose_.pose.position.x);
-  vec.setY(goal_.y - pose_.pose.position.y);
-  vec.setZ(goal_.z - pose_.pose.position.z);
 
-  vec.normalize();
+  output_.goto_position.x = pose_.pose.position.x + planner_info_.desired_vel_sp.twist.linear.x;
+  output_.goto_position.y = pose_.pose.position.y + planner_info_.desired_vel_sp.twist.linear.y;
+  output_.goto_position.z = pose_.pose.position.z + planner_info_.desired_vel_sp.twist.linear.z;
 
-  output_.goto_position.x = pose_.pose.position.x + vec.getX();
-  output_.goto_position.y = pose_.pose.position.y + vec.getY();
-  output_.goto_position.z = pose_.pose.position.z + vec.getZ();
-
-  ROS_DEBUG("[WG] Go fast selected waypoint: [%f, %f, %f].",
+  ROS_INFO("[WG] Go fast selected waypoint: [%f, %f, %f].",
             output_.goto_position.x, output_.goto_position.y,
             output_.goto_position.z);
 
