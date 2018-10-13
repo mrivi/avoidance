@@ -83,6 +83,8 @@ struct avoidanceOutput {
   double costmap_direction_e;
   double costmap_direction_z;
   std::vector<geometry_msgs::Point> path_node_positions;
+
+  geometry_msgs::TwistStamped desired_vel_sp;
 };
 
 class LocalPlanner {

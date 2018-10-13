@@ -562,4 +562,6 @@ void LocalPlanner::getAvoidanceOutput(avoidanceOutput &out) {
   out.costmap_direction_e = costmap_direction_e_;
   out.costmap_direction_z = costmap_direction_z_;
   out.path_node_positions = star_planner_.path_node_positions_;
+
+  out.desired_vel_sp = desired_vel_sp_;
 }
