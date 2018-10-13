@@ -641,6 +641,12 @@ void LocalPlannerNode::clickedGoalCallback(
 
 void LocalPlannerNode::fcuInputGoalCallback(
     const mavros_msgs::Trajectory& msg) {
+
+  local_planner_.desired_vel_sp_.header = msg.header;
+  local_planner_.desired_vel_sp_.twist.linear.x = msg.point_1.velocity.x;
+  local_planner_.desired_vel_sp_.twist.linear.y = msg.point_1.velocity.y;
+  local_planner_.desired_vel_sp_.twist.linear.z = msg.point_1.velocity.z;
+
   if (mission_ && (msg.point_valid[1] == true) &&
       ((std::fabs(goal_msg_.pose.position.x - msg.point_2.position.x) >
         0.001) ||
