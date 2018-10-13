@@ -620,7 +620,7 @@ void LocalPlanner::getAvoidanceOutput(avoidanceOutput &out) {
   out.use_avoid_sphere = use_avoid_sphere_;
   out.avoid_sphere_age = avoid_sphere_age_;
   out.avoid_centerpoint = avoid_centerpoint_;
-  out.avoid_radius = avoid_radius_;
+  out.avoid_radius = histogram_box_size_.xmin_;
 
   out.use_ground_detection = use_ground_detection_;
   out.over_obstacle = over_obstacle_;
@@ -631,7 +631,7 @@ void LocalPlanner::getAvoidanceOutput(avoidanceOutput &out) {
   out.back_off_point = back_off_point_;
   out.back_off_start_point = back_off_start_point_;
   out.min_dist_backoff = min_dist_backoff_;
-  out. distance_to_closest_point = distance_to_closest_point_;
+  out.distance_to_closest_point = distance_to_closest_point_;
 
   out.take_off_pose = take_off_pose_;
   out.offboard_pose = offboard_pose_;
