@@ -646,6 +646,7 @@ void LocalPlannerNode::fcuInputGoalCallback(
   local_planner_.desired_vel_sp_.twist.linear.x = msg.point_1.velocity.x;
   local_planner_.desired_vel_sp_.twist.linear.y = msg.point_1.velocity.y;
   local_planner_.desired_vel_sp_.twist.linear.z = msg.point_1.velocity.z;
+  local_planner_.desired_vel_sp_.twist.angular.z = msg.point_1.yaw;
 
   if (mission_ && (msg.point_valid[1] == true) &&
       ((std::fabs(goal_msg_.pose.position.x - msg.point_2.position.x) >
