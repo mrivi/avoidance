@@ -122,11 +122,21 @@ void WaypointGenerator::goFast() {
   output_.goto_position.y = pose_.pose.position.y + planner_info_.desired_vel_sp.twist.linear.y;
   output_.goto_position.z = pose_.pose.position.z + planner_info_.desired_vel_sp.twist.linear.z;
 
+  output_.position_waypoint = createPoseMsg(output_.goto_position, planner_info_.desired_vel_sp.twist.angular.z);
+
+  output_.velocity_waypoint.linear.x = planner_info_.desired_vel_sp.twist.linear.x;
+  output_.velocity_waypoint.linear.y = planner_info_.desired_vel_sp.twist.linear.y;
+  output_.velocity_waypoint.linear.z = planner_info_.desired_vel_sp.twist.linear.z;
+     
+  output_.velocity_waypoint.angular.x = 0.0;
+  output_.velocity_waypoint.angular.y = 0.0;
+  output_.velocity_waypoint.angular.z = getAngularVelocity(planner_info_.desired_vel_sp.twist.angular.z, curr_yaw_);
+
   ROS_INFO("[WG] Go fast selected waypoint: [%f, %f, %f].",
             output_.goto_position.x, output_.goto_position.y,
             output_.goto_position.z);
 
-  getPathMsg();
+ // getPathMsg();
 }
 
 void WaypointGenerator::backOff() {
