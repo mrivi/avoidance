@@ -85,6 +85,7 @@ struct avoidanceOutput {
   std::vector<geometry_msgs::Point> path_node_positions;
 
   geometry_msgs::TwistStamped desired_vel_sp;
+  geometry_msgs::PoseStamped desired_pos_sp;
 };
 
 class LocalPlanner {
@@ -210,6 +211,7 @@ class LocalPlanner {
   sensor_msgs::LaserScan distance_data_ = {};
 
   geometry_msgs::TwistStamped desired_vel_sp_;
+  geometry_msgs::PoseStamped desired_pos_sp_;
 
   //complete_cloud_ contains n complete clouds from the cameras
   std::vector<pcl::PointCloud<pcl::PointXYZ>> complete_cloud_;

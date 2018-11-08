@@ -568,9 +568,16 @@ void LocalPlannerNode::publishWaypoints(bool hover) {
     transformVelocityToTrajectory(obst_free_path, result.velocity_waypoint);
   } else {
     mavros_pos_setpoint_pub_.publish(result.position_waypoint);
-    transformPoseToTrajectory(obst_free_path, result.position_waypoint);
+    transformPoseToTrajectory(obst_free_path, result.position_waypoint, result.velocity_waypoint);
   }
-  mavros_obstacle_free_path_pub_.publish(obst_free_path);
+  printf("result.waypoint_type %d \n",result.waypoint_type);
+  if (result.waypoint_type != 4 && result.waypoint_type != 3) {
+    mavros_obstacle_free_path_pub_.publish(obst_free_path);
+  } else {
+    printf("DIRECT \n");
+  }
+
+
 }
 
 void LocalPlannerNode::publishTree() {
@@ -647,6 +654,11 @@ void LocalPlannerNode::fcuInputGoalCallback(
   local_planner_.desired_vel_sp_.twist.linear.y = msg.point_1.velocity.y;
   local_planner_.desired_vel_sp_.twist.linear.z = msg.point_1.velocity.z;
   local_planner_.desired_vel_sp_.twist.angular.z = msg.point_1.yaw;
+
+  local_planner_.desired_pos_sp_.header = msg.header;
+  local_planner_.desired_pos_sp_.pose.position.x = msg.point_1.position.x;
+  local_planner_.desired_pos_sp_.pose.position.y = msg.point_1.position.y;
+  local_planner_.desired_pos_sp_.pose.position.z = msg.point_1.position.z;
 
   if (mission_ && (msg.point_valid[1] == true) &&
       ((std::fabs(goal_msg_.pose.position.x - msg.point_2.position.x) >
@@ -769,15 +781,15 @@ void LocalPlannerNode::fillUnusedTrajectoryPoint(
 }
 
 void LocalPlannerNode::transformPoseToTrajectory(
-    mavros_msgs::Trajectory& obst_avoid, geometry_msgs::PoseStamped pose) {
+    mavros_msgs::Trajectory& obst_avoid, geometry_msgs::PoseStamped pose, geometry_msgs::Twist vel) {
   obst_avoid.header = pose.header;
   obst_avoid.type = 0;  // MAV_TRAJECTORY_REPRESENTATION::WAYPOINTS
   obst_avoid.point_1.position.x = pose.pose.position.x;
   obst_avoid.point_1.position.y = pose.pose.position.y;
   obst_avoid.point_1.position.z = pose.pose.position.z;
-  obst_avoid.point_1.velocity.x = NAN;
-  obst_avoid.point_1.velocity.y = NAN;
-  obst_avoid.point_1.velocity.z = NAN;
+  obst_avoid.point_1.velocity.x = vel.linear.x;
+  obst_avoid.point_1.velocity.y = vel.linear.y;
+  obst_avoid.point_1.velocity.z = vel.linear.z;
   obst_avoid.point_1.acceleration_or_force.x = NAN;
   obst_avoid.point_1.acceleration_or_force.y = NAN;
   obst_avoid.point_1.acceleration_or_force.z = NAN;
@@ -807,8 +819,8 @@ void LocalPlannerNode::transformVelocityToTrajectory(
   obst_avoid.point_1.acceleration_or_force.x = NAN;
   obst_avoid.point_1.acceleration_or_force.y = NAN;
   obst_avoid.point_1.acceleration_or_force.z = NAN;
-  obst_avoid.point_1.yaw = NAN;
-  obst_avoid.point_1.yaw_rate = -vel.angular.z;
+  obst_avoid.point_1.yaw = vel.angular.z;
+  obst_avoid.point_1.yaw_rate = NAN; //-vel.angular.z;
 
   fillUnusedTrajectoryPoint(obst_avoid.point_2);
   fillUnusedTrajectoryPoint(obst_avoid.point_3);

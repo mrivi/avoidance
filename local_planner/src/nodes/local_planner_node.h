@@ -104,7 +104,7 @@ class LocalPlannerNode {
   void updatePlannerInfo();
   int numReceivedClouds();
   void transformPoseToTrajectory(mavros_msgs::Trajectory &obst_avoid,
-                                 geometry_msgs::PoseStamped pose);
+                                 geometry_msgs::PoseStamped pose, geometry_msgs::Twist vel);
   void transformVelocityToTrajectory(mavros_msgs::Trajectory &obst_avoid,
                                      geometry_msgs::Twist vel);
   void fillUnusedTrajectoryPoint(mavros_msgs::PositionTarget &point);

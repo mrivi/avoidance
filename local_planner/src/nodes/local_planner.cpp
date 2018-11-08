@@ -564,4 +564,5 @@ void LocalPlanner::getAvoidanceOutput(avoidanceOutput &out) {
   out.path_node_positions = star_planner_.path_node_positions_;
 
   out.desired_vel_sp = desired_vel_sp_;
+  out.desired_pos_sp = desired_pos_sp_;
 }

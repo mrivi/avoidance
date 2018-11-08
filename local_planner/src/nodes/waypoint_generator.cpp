@@ -49,9 +49,9 @@ void WaypointGenerator::calculateWaypoint() {
             p.x, p.y, 1.0, planner_info_.pose.pose.position);
         getPathMsg();
       } else {
+        output_.waypoint_type = direct;
         ROS_DEBUG("[WG] No valid tree, go fast");
         goFast();
-        output_.waypoint_type = direct;
       }
       break;
     }
@@ -118,9 +118,9 @@ void WaypointGenerator::updateState(geometry_msgs::PoseStamped act_pose,
 // if there isn't any obstacle in front of the UAV, increase cruising speed
 void WaypointGenerator::goFast() {
 
-  output_.goto_position.x = pose_.pose.position.x + planner_info_.desired_vel_sp.twist.linear.x;
-  output_.goto_position.y = pose_.pose.position.y + planner_info_.desired_vel_sp.twist.linear.y;
-  output_.goto_position.z = pose_.pose.position.z + planner_info_.desired_vel_sp.twist.linear.z;
+  output_.goto_position.x = planner_info_.desired_pos_sp.pose.position.x;
+  output_.goto_position.y = planner_info_.desired_pos_sp.pose.position.y;
+  output_.goto_position.z = planner_info_.desired_pos_sp.pose.position.z;
 
   output_.position_waypoint = createPoseMsg(output_.goto_position, planner_info_.desired_vel_sp.twist.angular.z);
 
@@ -130,7 +130,7 @@ void WaypointGenerator::goFast() {
      
   output_.velocity_waypoint.angular.x = 0.0;
   output_.velocity_waypoint.angular.y = 0.0;
-  output_.velocity_waypoint.angular.z = getAngularVelocity(planner_info_.desired_vel_sp.twist.angular.z, curr_yaw_);
+  output_.velocity_waypoint.angular.z = planner_info_.desired_vel_sp.twist.angular.z;
 
   ROS_INFO("[WG] Go fast selected waypoint: [%f, %f, %f].",
             output_.goto_position.x, output_.goto_position.y,
@@ -409,6 +409,6 @@ void WaypointGenerator::getWaypoints(waypointResult &output) {
   output = output_;
 }
 
-void WaypointGenerator::setPlannerInfo(avoidanceOutput input) {
+void WaypointGenerator::setPlannerInfo(avoidanceOutput &input) {
   planner_info_ = input;
 }

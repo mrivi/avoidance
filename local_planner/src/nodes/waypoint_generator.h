@@ -90,7 +90,7 @@ class WaypointGenerator {
 
   waypointGenerator_params param_;
   void getWaypoints(waypointResult &output);
-  void setPlannerInfo(avoidanceOutput input);
+  void setPlannerInfo(avoidanceOutput &input);
   void updateState(geometry_msgs::PoseStamped act_pose,
                    geometry_msgs::PoseStamped goal,
                    geometry_msgs::TwistStamped vel, bool stay, ros::Time t);
