@@ -37,8 +37,8 @@ class StarPlanner {
   double min_flight_height_;
   double ground_margin_;
   double min_cloud_size_;
-  double min_dist_backoff_;
-  double min_realsense_dist_;
+  float min_dist_backoff_;
+  float min_realsense_dist_;
   double ground_distance_ = 2.0;
 
   std::vector<double> reprojected_points_age_;
@@ -64,9 +64,9 @@ class StarPlanner {
   StarPlanner();
   ~StarPlanner();
 
-  void setParams(double min_cloud_size, double min_dist_backoff,
+  void setParams(double min_cloud_size, float min_dist_backoff,
                  const nav_msgs::GridCells& path_waypoints, double curr_yaw,
-                 double min_realsense_dist);
+                 float min_realsense_dist);
   void setFOV(double h_FOV, double v_FOV);
   void setReprojectedPoints(
       const pcl::PointCloud<pcl::PointXYZ>& reprojected_points,

@@ -40,21 +40,21 @@ void LocalPlanner::setPose(const geometry_msgs::PoseStamped msg) {
 // set parameters changed by dynamic rconfigure
 void LocalPlanner::dynamicReconfigureSetParams(
     avoidance::LocalPlannerNodeConfig &config, uint32_t level) {
-  histogram_box_.radius_ = config.box_radius_;
+  histogram_box_.radius_ = static_cast<float>(config.box_radius_);
   goal_cost_param_ = config.goal_cost_param_;
   smooth_cost_param_ = config.smooth_cost_param_;
   min_speed_ = config.min_speed_;
   max_speed_ = config.max_speed_;
   keep_distance_ = config.keep_distance_;
-  reproj_age_ = config.reproj_age_;
+  reproj_age_ = static_cast<float>(config.reproj_age_);
   relevance_margin_e_degree_ = config.relevance_margin_e_degree_;
   relevance_margin_z_degree_ = config.relevance_margin_z_degree_;
   velocity_sigmoid_slope_ = config.velocity_sigmoid_slope_;
 
   no_progress_slope_ = config.no_progress_slope_;
   min_cloud_size_ = config.min_cloud_size_;
-  min_realsense_dist_ = config.min_realsense_dist_;
-  min_dist_backoff_ = config.min_dist_backoff_;
+  min_realsense_dist_ = static_cast<float>(config.min_realsense_dist_);
+  min_dist_backoff_ = static_cast<float>(config.min_dist_backoff_);
   pointcloud_timeout_hover_ = config.pointcloud_timeout_hover_;
   pointcloud_timeout_land_ = config.pointcloud_timeout_land_;
   childs_per_node_ = config.childs_per_node_;
@@ -238,8 +238,8 @@ void LocalPlanner::determineStrategy() {
         back_off_start_point_ = toEigen(pose_.pose.position);
         back_off_ = true;
       } else {
-        double dist = (toEigen(pose_.pose.position) - back_off_point_).norm();
-        if (dist > min_dist_backoff_ + 1.0) {
+        float dist = (toEigen(pose_.pose.position) - back_off_point_).norm();
+        if (dist > min_dist_backoff_ + 1.0f) {
           back_off_ = false;
         }
       }
@@ -346,7 +346,7 @@ void LocalPlanner::updateObstacleDistanceMsg(Histogram hist) {
   sensor_msgs::LaserScan msg = {};
   msg.header.stamp = ros::Time::now();
   msg.header.frame_id = "local_origin";
-  msg.angle_increment = ALPHA_RES * M_PI / 180.0f;
+  msg.angle_increment = static_cast<double>(ALPHA_RES) * M_PI / 180.0;
   msg.range_min = 0.2f;
   msg.range_max = 20.0f;
 
@@ -390,7 +390,7 @@ void LocalPlanner::updateObstacleDistanceMsg() {
   sensor_msgs::LaserScan msg = {};
   msg.header.stamp = ros::Time::now();
   msg.header.frame_id = "local_origin";
-  msg.angle_increment = ALPHA_RES * M_PI / 180.0f;
+  msg.angle_increment = static_cast<double>(ALPHA_RES) * M_PI / 180.0;
   msg.range_min = 0.2f;
   msg.range_max = 20.0f;
 
@@ -399,8 +399,7 @@ void LocalPlanner::updateObstacleDistanceMsg() {
 
 // get 3D points from old histogram
 void LocalPlanner::reprojectPoints(Histogram histogram) {
-  double n_points = 0;
-  double dist, age;
+  float dist, age;
   // ALPHA_RES%2=0 as per definition, see histogram.h
   int half_res = ALPHA_RES / 2;
 
@@ -417,7 +416,6 @@ void LocalPlanner::reprojectPoints(Histogram histogram) {
   for (int e = 0; e < GRID_LENGTH_E; e++) {
     for (int z = 0; z < GRID_LENGTH_Z; z++) {
       if (histogram.get_bin(e, z) != 0) {
-        n_points++;
         for (auto &i : p_pol) {
           i.r = histogram.get_dist(e, z);
           i = histogramIndexToPolar(e, z, ALPHA_RES, i.r);
@@ -442,7 +440,7 @@ void LocalPlanner::reprojectPoints(Histogram histogram) {
           dist = (toEigen(pose_.pose.position) - temp_array[i]).norm();
           age = histogram.get_age(e, z);
 
-          if (dist < 2.0 * histogram_box_.radius_ && dist > 0.3 &&
+          if (dist < 2.0f * histogram_box_.radius_ && dist > 0.3f &&
               age < reproj_age_) {
             reprojected_points_.points.push_back(toXYZ(temp_array[i]));
             reprojected_points_age_.push_back(age);

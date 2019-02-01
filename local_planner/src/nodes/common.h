@@ -18,7 +18,10 @@ struct PolarPoint {
   float r;
 };
 
-const double DEG_TO_RAD = M_PI / 180.f;
+#define M_PI_F 3.14159265358979323846f
+const float DEG_TO_RAD = M_PI_F / 180.f;
+const float RAD_TO_DEG = 180.0f / M_PI_F;
+
 /**
 * @brief     calculates the distance between two polar points
 * @param[in] p1 polar point
@@ -62,7 +65,7 @@ PolarPoint histogramIndexToPolar(int e, int z, int res, float radius);
 
 PolarPoint cartesianToPolar(const Eigen::Vector3f& pos,
                             const Eigen::Vector3f& origin);
-PolarPoint cartesianToPolar(double x, double y, double z,
+PolarPoint cartesianToPolar(float x, float y, float z,
                             const Eigen::Vector3f& pos);
 /**
 * @brief     compute polar point to histogram index

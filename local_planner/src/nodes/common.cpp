@@ -17,10 +17,10 @@ Eigen::Vector3f polarToCartesian(const PolarPoint& p_pol,
                                  const geometry_msgs::Point& pos) {
   Eigen::Vector3f p;
   p.x() =
-      pos.x + p_pol.r * cos(p_pol.e * DEG_TO_RAD) * sin(p_pol.z * DEG_TO_RAD);
+      static_cast<float>(pos.x) + p_pol.r * std::cos(p_pol.e * DEG_TO_RAD) * std::sin(p_pol.z * DEG_TO_RAD);
   p.y() =
-      pos.y + p_pol.r * cos(p_pol.e * DEG_TO_RAD) * cos(p_pol.z * DEG_TO_RAD);
-  p.z() = pos.z + p_pol.r * sin(p_pol.e * DEG_TO_RAD);
+      static_cast<float>(pos.y) + p_pol.r * std::cos(p_pol.e * DEG_TO_RAD) * std::cos(p_pol.z * DEG_TO_RAD);
+  p.z() = static_cast<float>(pos.z) + p_pol.r * std::sin(p_pol.e * DEG_TO_RAD);
 
   return p;
 }
@@ -40,12 +40,12 @@ PolarPoint cartesianToPolar(const Eigen::Vector3f& pos,
                             const Eigen::Vector3f& origin) {
   return cartesianToPolar(pos.x(), pos.y(), pos.z(), origin);
 }
-PolarPoint cartesianToPolar(double x, double y, double z,
+PolarPoint cartesianToPolar(float x, float y, float z,
                             const Eigen::Vector3f& pos) {
   PolarPoint p_pol(0.0f, 0.0f, 0.0f);
-  double den = (Eigen::Vector2f(x, y) - pos.topRows<2>()).norm();
-  p_pol.e = atan2(z - pos.z(), den) * 180.0 / M_PI;            //(-90.+90)
-  p_pol.z = atan2(x - pos.x(), y - pos.y()) * (180.0 / M_PI);  //(-180. +180]
+  float den = (Eigen::Vector2f(x, y) - pos.topRows<2>()).norm();
+  p_pol.e = std::atan2(z - pos.z(), den) * RAD_TO_DEG;            //(-90.+90)
+  p_pol.z = std::atan2(x - pos.x(), y - pos.y()) * RAD_TO_DEG;  //(-180. +180]
   p_pol.r = sqrt((x - pos.x()) * (x - pos.x()) + (y - pos.y()) * (y - pos.y()) +
                  (z - pos.z()) * (z - pos.z()));
   return p_pol;
@@ -60,16 +60,16 @@ Eigen::Vector2i polarToHistogramIndex(const PolarPoint& p_pol, int res) {
     return ev2;
   }
   if (e == 90.f) {
-    e = 89;
+    e = 89.f;
   }
-  e += 90.0;
+  e += 90.f;
   e = e + (res - (static_cast<int>(e) % res));  //[-80,+90]
   ev2.y() = e / res - 1;
 
   if (z == 180.f) {
-    z = -180;
+    z = -180.f;
   }
-  z += 180.0;
+  z += 180.f;
   z = z + (res - (static_cast<int>(z) % res));  //[-80,+90]
   ev2.x() = z / res - 1;
   return ev2;

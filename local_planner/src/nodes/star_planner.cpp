@@ -21,9 +21,9 @@ void StarPlanner::dynamicReconfigureSetStarParams(
   tree_discount_factor_ = config.tree_discount_factor_;
 }
 
-void StarPlanner::setParams(double min_cloud_size, double min_dist_backoff,
+void StarPlanner::setParams(double min_cloud_size, float min_dist_backoff,
                             const nav_msgs::GridCells& path_waypoints,
-                            double curr_yaw, double min_realsense_dist) {
+                            double curr_yaw, float min_realsense_dist) {
   path_waypoints_ = path_waypoints;
   curr_yaw_ = curr_yaw;
   min_cloud_size_ = min_cloud_size;
@@ -165,7 +165,7 @@ void StarPlanner::buildLookAheadTree() {
     Eigen::Vector3f closest_point;  // unused
     bool hist_is_empty = false;     // unused
     int backoff_points_counter = 0;
-    double distance_to_closest_point;
+    float distance_to_closest_point;
     histogram_box_.setBoxLimits(toPoint(origin_position), ground_distance_);
 
     filterPointCloud(cropped_cloud, closest_point, distance_to_closest_point,

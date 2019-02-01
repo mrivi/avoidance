@@ -73,14 +73,14 @@ class LocalPlanner {
   double no_progress_slope_;
   double tree_node_distance_;
   double new_yaw_;
-  double distance_to_closest_point_;
+  float distance_to_closest_point_;
   double safety_radius_ = 25.0;
   double min_cloud_size_ = 160.0;
-  double min_dist_backoff_;
+  float min_dist_backoff_;
   double relevance_margin_z_degree_ = 40;
   double relevance_margin_e_degree_ = 25;
   double velocity_sigmoid_slope_ = 1;
-  double min_realsense_dist_ = 0.2;
+  float min_realsense_dist_ = 0.2f;
   double costmap_direction_e_;
   double costmap_direction_z_;
 
@@ -149,7 +149,7 @@ class LocalPlanner {
   double pointcloud_timeout_land_;
   double starting_height_ = 0.0;
   double speed_ = 1.0;
-  double ground_distance_ = 2.0;
+  float ground_distance_ = 2.0;
 
   geometry_msgs::PoseStamped take_off_pose_;
   geometry_msgs::PoseStamped offboard_pose_;

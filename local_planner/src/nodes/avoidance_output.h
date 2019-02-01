@@ -27,7 +27,7 @@ struct avoidanceOutput {
 
   geometry_msgs::Point back_off_point;
   geometry_msgs::Point back_off_start_point;
-  double min_dist_backoff;
+  float min_dist_backoff;
 
   geometry_msgs::PoseStamped take_off_pose;
   geometry_msgs::PoseStamped offboard_pose;
