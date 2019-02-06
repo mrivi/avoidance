@@ -492,6 +492,7 @@ bool getDirectionFromTree(
       }
     }
     int wp_idx = std::min(min_dist_idx, second_min_dist_idx);
+    printf("tree available %d %d \n", min_dist > 3.0, wp_idx == 0);
     if (min_dist > 3.0 || wp_idx == 0) {
       tree_available = false;
     } else {
@@ -510,6 +511,7 @@ bool getDirectionFromTree(
       p_pol.r = 0.0;
     }
   } else {
+    printf("tree not available path size %d \n", size);
     tree_available = false;
   }
   return tree_available;

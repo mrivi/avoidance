@@ -618,6 +618,28 @@ void LocalPlannerNode::publishWaypoints(bool hover) {
 
   // to mavros
 
+  switch (result.waypoint_type) {
+    // case hover:
+    // printf("hover\n");
+    // break;
+    case costmap:
+    printf("costmap \n");
+    break;
+    case tryPath:
+    printf("tryPath\n");
+    break;
+    case direct:
+    printf("direct \n");
+    break;
+    case reachHeight:
+    printf("reachHeight\n" );
+    break;
+    case goBack:
+    printf("goBack\n" );
+    break;
+  }
+
+
   mavros_msgs::Trajectory obst_free_path = {};
   if (local_planner_->use_vel_setpoints_) {
     mavros_vel_setpoint_pub_.publish(result.velocity_waypoint);
@@ -626,6 +648,10 @@ void LocalPlannerNode::publishWaypoints(bool hover) {
     mavros_pos_setpoint_pub_.publish(result.position_waypoint);
     transformPoseToTrajectory(obst_free_path, result.position_waypoint);
   }
+  if (result.waypoint_type == direct || result.waypoint_type ==  reachHeight) {
+     obst_free_path.point_valid[0] = false;
+
+   }
   mavros_obstacle_free_path_pub_.publish(obst_free_path);
 }
 
@@ -888,6 +914,8 @@ void LocalPlannerNode::transformPoseToTrajectory(
   obst_avoid.point_1.acceleration_or_force.z = NAN;
   obst_avoid.point_1.yaw = tf::getYaw(pose.pose.orientation);
   obst_avoid.point_1.yaw_rate = NAN;
+
+  printf("LP %f %f %f \n", obst_avoid.point_1.position.x, obst_avoid.point_1.position.y, obst_avoid.point_1.position.z);
 
   fillUnusedTrajectoryPoint(obst_avoid.point_2);
   fillUnusedTrajectoryPoint(obst_avoid.point_3);
