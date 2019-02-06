@@ -13,11 +13,11 @@
     <arg name="tgt_component" default="1" />
 
     <!-- Launch rqt_reconfigure -->
-    <node pkg="rqt_reconfigure" type="rqt_reconfigure" output="screen" name="rqt_reconfigure" />
+    <!-- <node pkg="rqt_reconfigure"`` type="rqt_reconfigure" output="screen" name="rqt_reconfigure" /> -->
 
     <!-- Launch PX4 SITL -->
-    <include file="$(find px4)/launch/px4.launch">
-    </include>
+     <include file="$(find px4)/launch/px4.launch">
+    </include> 
 
     <!-- Launch MavROS -->
     <group ns="$(arg ns)">
