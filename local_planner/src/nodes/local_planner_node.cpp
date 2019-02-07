@@ -540,7 +540,8 @@ void LocalPlannerNode::publishBox() {
 void LocalPlannerNode::publishWaypoints(bool hover) {
   const ros::Time now = ros::Time::now();
 
-  wp_generator_->updateState(newest_pose_, goal_msg_, vel_msg_, hover, now);
+
+  wp_generator_->updateState(newest_pose_, goal_msg_, prev_goal_, vel_msg_, hover, now);
   waypointResult result = wp_generator_->getWaypoints();
 
   visualization_msgs::Marker sphere1;
@@ -740,6 +741,13 @@ void LocalPlannerNode::fcuInputGoalCallback(
         0.001) ||
        (std::fabs(goal_msg_.pose.position.z - msg.point_2.position.z) >
         0.001))) {
+
+    
+    if (goal_msg_.pose.position.x==0.0f && goal_msg_.pose.position.y==0.0f && goal_msg_.pose.position.z==0.0f) {
+      prev_goal_= newest_pose_.pose.position;
+    } else {
+      prev_goal_ = goal_msg_.pose.position;
+    }
     new_goal_ = true;
     goal_msg_.pose.position.x = msg.point_2.position.x;
     goal_msg_.pose.position.y = msg.point_2.position.y;

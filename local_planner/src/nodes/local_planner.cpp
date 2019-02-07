@@ -85,6 +85,8 @@ void LocalPlanner::setVelocity() {
 }
 
 void LocalPlanner::setGoal(const geometry_msgs::Point &goal) {
+
+
   goal_ = toEigen(goal);
   ROS_INFO("===== Set Goal ======: [%f, %f, %f].", goal_.x(), goal_.y(),
            goal_.z());

@@ -147,6 +147,8 @@ class LocalPlannerNode {
   mavros_msgs::Altitude ground_distance_msg_;
   int path_length_ = 0;
 
+  geometry_msgs::Point prev_goal_;
+
   // Subscribers
   ros::Subscriber pose_sub_;
   ros::Subscriber velocity_sub_;

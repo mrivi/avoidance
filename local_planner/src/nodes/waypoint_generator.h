@@ -45,6 +45,7 @@ class WaypointGenerator {
 
   geometry_msgs::PoseStamped pose_;
   Eigen::Vector3f goal_;
+  Eigen::Vector3f prev_goal_;
   double curr_yaw_;
   double curr_vel_magnitude_;
   ros::Time update_time_;
@@ -90,6 +91,7 @@ class WaypointGenerator {
   void setFOV(double h_FOV, double v_FOV);
   void updateState(const geometry_msgs::PoseStamped& act_pose,
                    const geometry_msgs::PoseStamped& goal,
+                   const geometry_msgs::Point& prev_goal,
                    const geometry_msgs::TwistStamped& vel, bool stay,
                    ros::Time t);
 
