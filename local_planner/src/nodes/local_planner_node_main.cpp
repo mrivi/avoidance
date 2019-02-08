@@ -67,7 +67,10 @@ int main(int argc, char** argv) {
                               since_start > pointcloud_timeout_hover)) {
         if (Node.position_received_) {
           hover = true;
-          Node.status_msg_.state = (int)MAV_STATE::MAV_STATE_CRITICAL;
+          if (!Node.never_run_) {
+            Node.status_msg_.state = (int)MAV_STATE::MAV_STATE_CRITICAL;
+          }
+
           std::string not_received = "";
           for (size_t i = 0; i < Node.cameras_.size(); i++) {
             if (!Node.cameras_[i].received_) {
