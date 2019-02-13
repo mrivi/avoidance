@@ -65,26 +65,32 @@ void WaypointGenerator::calculateWaypoint() {
         printf("[WG] No valid tree, go fast \n");
 
 
-        printf("prev_goal_ %f %f \n", prev_goal_.x(), prev_goal_.y());
         Eigen::Vector2f u_prev_to_goal = (goal_ - prev_goal_).head<2>();
-        printf("u_prev_to_goal %f %f \n", u_prev_to_goal.x(), u_prev_to_goal.y());
         u_prev_to_goal = u_prev_to_goal.normalized();
-        printf("u_prev_to_goal %f %f \n", u_prev_to_goal.x(), u_prev_to_goal.y());
+
         Eigen::Vector2f pos_to_goal = (goal_ - toEigen(pose_.pose.position)).head<2>();
 	      // Vector2f pos_to_target(_triplet_target - _position);
 	      // Vector2f prev_to_pos(_position - _triplet_prev_wp);
         Eigen::Vector2f prev_to_pos = (toEigen(pose_.pose.position) - prev_goal_).head<2>();
-        printf("prev_to_pos %f %f \n", prev_to_pos.x(), prev_to_pos.y());
+
+
 
 	      // // Calculate the closest point to the vehicle position on the line prev_wp - target
 	      // _closest_pt = Vector2f(_triplet_prev_wp) + u_prev_to_target * (prev_to_pos * u_prev_to_target);
         Eigen::Vector2f prev_goal_2f =prev_goal_.head<2>();
         Eigen::Vector2f pos_2f =toEigen(pose_.pose.position).head<2>();
-        printf("prev_goal_2f %f %f \n", prev_goal_2f.x(), prev_goal_2f.y());
+
         // Eigen::Vector2f closest_pt = prev_goal_.head<2>() + u_prev_to_goal * (prev_to_pos * u_prev_to_goal);
         Eigen::Vector2f closest_pt = prev_goal_2f + ( u_prev_to_goal * u_prev_to_goal.dot(prev_to_pos));
-        if ((pos_2f - closest_pt).norm() > 5.0) {
-          float len = pos_to_goal.norm() * std::tan(0.174533f);
+        printf("pos %f %f goal %f %f  \n", pose_.pose.position.x, pose_.pose.position.y, goal_.x(), goal_.y()) ;
+        printf("pos_to_goal %f %f \n", pos_to_goal.x(), pos_to_goal.y());
+        printf("prev_goal_ %f %f \n", prev_goal_.x(), prev_goal_.y());
+        printf("u_prev_to_goal %f %f \n", u_prev_to_goal.x(), u_prev_to_goal.y());
+        printf("prev_to_pos %f %f \n", prev_to_pos.x(), prev_to_pos.y());
+        printf("closest_pt %f %f \n", closest_pt.x(), closest_pt.y());
+
+        if ((pos_2f - closest_pt).norm() > 3.0) {
+          float len = pos_to_goal.norm() * std::tan(0.017f);
           Eigen::Vector3f tmp_goal;
           tmp_goal.x() = closest_pt.x() + len * u_prev_to_goal.x();
           tmp_goal.y() = closest_pt.y() + len * u_prev_to_goal.y();
