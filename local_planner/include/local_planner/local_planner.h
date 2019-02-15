@@ -98,6 +98,7 @@ class LocalPlanner {
   pcl::PointCloud<pcl::PointXYZ> reprojected_points_, final_cloud_;
 
   geometry_msgs::PoseStamped pose_;
+  Eigen::Vector3f position_ = Eigen::Vector3f::Zero();
   Eigen::Vector3f goal_ = Eigen::Vector3f::Zero();
   Eigen::Vector3f back_off_point_ = Eigen::Vector3f::Zero();
   Eigen::Vector3f back_off_start_point_ = Eigen::Vector3f::Zero();
@@ -157,7 +158,7 @@ class LocalPlanner {
   void applyGoal();
   void dynamicReconfigureSetParams(avoidance::LocalPlannerNodeConfig &config,
                                    uint32_t level);
-  geometry_msgs::PoseStamped getPosition();
+  Eigen::Vector3f getPosition();
   void getCloudsForVisualization(
       pcl::PointCloud<pcl::PointXYZ> &final_cloud,
       pcl::PointCloud<pcl::PointXYZ> &reprojected_points);

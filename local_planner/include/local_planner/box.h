@@ -2,7 +2,7 @@
 #ifndef BOX_H
 #define BOX_H
 
-#include <geometry_msgs/Point.h>
+#include <Eigen/Dense>
 namespace avoidance {
 class Box {
  public:
@@ -10,7 +10,7 @@ class Box {
   Box(const float& radius);
   ~Box();
 
-  void setBoxLimits(const geometry_msgs::Point& pos,
+  void setBoxLimits(const Eigen::Vector3f& pos,
                     const float ground_distance);
   bool isPointWithinBox(const float& x, const float& y, const float& z);
 
