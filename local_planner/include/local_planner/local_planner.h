@@ -98,6 +98,7 @@ class LocalPlanner {
   pcl::PointCloud<pcl::PointXYZ> reprojected_points_, final_cloud_;
 
   geometry_msgs::PoseStamped pose_;
+  Eigen::Quaternionf orientation_q_;
   Eigen::Vector3f position_ = Eigen::Vector3f::Zero();
   Eigen::Vector3f velocity_ = Eigen::Vector3f::Zero();
   Eigen::Vector3f goal_ = Eigen::Vector3f::Zero();
@@ -105,7 +106,6 @@ class LocalPlanner {
   Eigen::Vector3f back_off_start_point_ = Eigen::Vector3f::Zero();
   Eigen::Vector3f position_old_ = Eigen::Vector3f::Zero();
   Eigen::Vector3f closest_point_ = Eigen::Vector3f::Zero();
-
   Histogram polar_histogram_ = Histogram(ALPHA_RES);
   Histogram to_fcu_histogram_ = Histogram(ALPHA_RES);
   Eigen::MatrixXf cost_matrix_;

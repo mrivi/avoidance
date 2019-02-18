@@ -19,6 +19,10 @@ void LocalPlanner::setPose(const geometry_msgs::PoseStamped msg) {
   pose_.pose.position = msg.pose.position;
   pose_.pose.orientation = msg.pose.orientation;
   position_ = toEigen(msg.pose.position);
+  orientation_q_.w() = msg.pose.orientation.w;
+  orientation_q_.x() = msg.pose.orientation.x;
+  orientation_q_.y() = msg.pose.orientation.y;
+  orientation_q_.z() = msg.pose.orientation.z;
   curr_yaw_ = static_cast<float>(tf::getYaw(msg.pose.orientation));
   star_planner_->setPose(position_, curr_yaw_);
 
@@ -101,14 +105,20 @@ void LocalPlanner::runPlanner() {
            static_cast<int>(complete_cloud_.size()));
 
   // calculate Field of View
+  Eigen::Vector3f euler = orientation_q_.toRotationMatrix().eulerAngles(2, 1, 0);
+  std::cout << "Euler from quaternion in yaw pitch roll"<< euler << std::endl;
+  std::cout << "Euler from quaternion in roll " << euler[2] << " pitch  " << euler[1] << " yaw "<< euler[0] << std::endl;
   tf::Quaternion q(pose_.pose.orientation.x, pose_.pose.orientation.y,
                    pose_.pose.orientation.z, pose_.pose.orientation.w);
   tf::Matrix3x3 m(q);
   double roll, pitch, yaw;
-  m.getRPY(roll, pitch, yaw);
+  m.getRPY(roll, pitch, yaw, 1);
+  std::cout << "getRPY " << roll << " " << pitch << " " << yaw << std::endl;
+  m.getRPY(roll, pitch, yaw, 2);
+  std::cout << "getRPY " << roll << " " << pitch << " " << yaw << std::endl;
   z_FOV_idx_.clear();
   calculateFOV(h_FOV_, v_FOV_, z_FOV_idx_, e_FOV_min_, e_FOV_max_,
-               static_cast<float>(yaw), static_cast<float>(pitch));
+               euler[0], euler[1]);
 
   histogram_box_.setBoxLimits(position_, ground_distance_);
 
