@@ -28,6 +28,25 @@ void LocalPlanner::setPose(const Eigen::Vector3f &pos, const Eigen::Quaternionf 
   }
 }
 
+
+void LocalPlanner::setPose(const geometry_msgs::PoseStamped msg) {
+  // position_ = toEigen(msg.pose.position);
+  tf::Quaternion q(msg.pose.orientation.x, msg.pose.orientation.y,
+                   msg.pose.orientation.z, msg.pose.orientation.w);
+  tf::Matrix3x3 m(q);
+  double roll, pitch, yaw;
+  m.getRPY(roll, pitch, yaw);
+  // curr_yaw_ = static_cast<float>(yaw);
+  // curr_pitch_ = static_cast<float>(pitch);
+  printf("T yaw %f pitch %f roll %f \n", yaw, pitch, roll);
+  // star_planner_->setPose(position_, curr_yaw_);
+  //
+  // if (!currently_armed_ && !disable_rise_to_goal_altitude_) {
+  //   take_off_pose_ = position_;
+  //   reach_altitude_ = false;
+  // }
+}
+
 // set parameters changed by dynamic rconfigure
 void LocalPlanner::dynamicReconfigureSetParams(
     avoidance::LocalPlannerNodeConfig &config, uint32_t level) {

@@ -419,50 +419,57 @@ TEST(Common, wrapPolar) {
   EXPECT_FLOAT_EQ(-120.f, p_pol_6.z);
 }
 
-TEST(Common, testEulerQuatCOnv) {
+TEST(Common, QuaternionToEuler) {
 
-  geometry_msgs::PoseStamped pose_;
-  for (float w = -0.1f; w < 0.1f; w+=0.001f) {
-    /* code */
+  // geometry_msgs::PoseStamped pose_;
+  // for (float w = -0.1f; w < 0.1f; w+=0.001f) {
+  //   /* code */
+  //
+  //   pose_.pose.orientation.x = 0.00883646; //0.0;
+  //   pose_.pose.orientation.y  = 0.0243673; //0.0;
+  //   pose_.pose.orientation.z = 0.999582;
+  //   pose_.pose.orientation.w = w; //1.0;
+  //   Eigen::Quaterniond orientation_q_;
+  //   orientation_q_.x() = pose_.pose.orientation.x;
+  //   orientation_q_.y() = pose_.pose.orientation.y;
+  //   orientation_q_.z() = pose_.pose.orientation.z;
+  //   orientation_q_.w() = pose_.pose.orientation.w;
+  //
+  //   printf("Q(w,x,y,z) %f %f %f %f \n", pose_.pose.orientation.w, pose_.pose.orientation.x, pose_.pose.orientation.y, pose_.pose.orientation.z);
+  //
+  //
+  //   Eigen::Quaterniond e = Eigen::Quaterniond(pose_.pose.orientation.w,pose_.pose.orientation.x,
+  //   pose_.pose.orientation.y, pose_.pose.orientation.z);
+  //   printf("double %f %f %f %f \n", e.x(), e.y(), e.z(), e.w());
+  //
+  //
+  //   Eigen::Vector3d euler = orientation_q_.toRotationMatrix().eulerAngles(1, 0, 2);
+  //
+  //
+  //
+  //   Eigen::Matrix3d R = orientation_q_.toRotationMatrix();
+  //   std::cout << "R=" << std::endl << R << std::endl;
+  //   // std::cout << "Eigen Transf roll " << euler[2] << " pitch  " << euler[1] << " yaw "<< euler[0] << std::endl;
+  //   std::cout << "Eigen Transf roll " << euler[0] << " pitch  " << euler[1] << " yaw "<< euler[2] << std::endl;
+  //
+  //   tf::Quaternion q(pose_.pose.orientation.x, pose_.pose.orientation.y,
+  //                    pose_.pose.orientation.z, pose_.pose.orientation.w);
+  //   tf::Matrix3x3 m(q);
+  //   printf("matrix \n" );
+  //   for (size_t i = 0; i < 3; i++) {
+  //     for (size_t j = 0; j < 3; j++) {
+  //       printf("%f ", m[i][j]);
+  //     }
+  //     printf("\n");
+  //   }
+  //   double roll, pitch, yaw;
+  //   m.getRPY(roll, pitch, yaw, 1);
+  //   std::cout << "getRPY sol1 " << roll << " " << pitch << " " << yaw << std::endl;
+  //   m.getRPY(roll, pitch, yaw, 2);
+  //   std::cout << "getRPY sol2 " << roll << " " << pitch << " " << yaw << std::endl;
+  //   printf("\n" );
 
-    pose_.pose.orientation.x = 0.00883646; //0.0;
-    pose_.pose.orientation.y  = 0.0243673; //0.0;
-    pose_.pose.orientation.z = 0.999582;
-    pose_.pose.orientation.w = w; //1.0;
-    Eigen::Quaternionf orientation_q_;
-    orientation_q_.x() = pose_.pose.orientation.x;
-    orientation_q_.y() = pose_.pose.orientation.y;
-    orientation_q_.z() = pose_.pose.orientation.z;
-    orientation_q_.w() = pose_.pose.orientation.w;
-
-    printf("Q(w,x,y,z) %f %f %f %f \n", pose_.pose.orientation.w, pose_.pose.orientation.x, pose_.pose.orientation.y, pose_.pose.orientation.z);
-
-
-    Eigen::Vector3f euler = orientation_q_.toRotationMatrix().eulerAngles(0, 1, 2);
-
-    Eigen::Matrix3f R = orientation_q_.toRotationMatrix();
-    std::cout << "R=" << std::endl << R << std::endl;
-    // std::cout << "Eigen Transf roll " << euler[2] << " pitch  " << euler[1] << " yaw "<< euler[0] << std::endl;
-    std::cout << "Eigen Transf roll " << euler[0] << " pitch  " << euler[1] << " yaw "<< euler[2] << std::endl;
-
-    tf::Quaternion q(pose_.pose.orientation.x, pose_.pose.orientation.y,
-                     pose_.pose.orientation.z, pose_.pose.orientation.w);
-    tf::Matrix3x3 m(q);
-    printf("matrix \n" );
-    for (size_t i = 0; i < 3; i++) {
-      for (size_t j = 0; j < 3; j++) {
-        printf("%f ", m[i][j]);
-      }
-      printf("\n");
-    }
-    double roll, pitch, yaw;
-    m.getRPY(roll, pitch, yaw, 1);
-    std::cout << "getRPY sol1 " << roll << " " << pitch << " " << yaw << std::endl;
-    m.getRPY(roll, pitch, yaw, 2);
-    std::cout << "getRPY sol2 " << roll << " " << pitch << " " << yaw << std::endl;
-    printf("\n" );
-
-}
+// }
 
 
   // float roll = 0.0f, pitch = 0.0f;
@@ -482,4 +489,22 @@ TEST(Common, testEulerQuatCOnv) {
   //     * Eigen::AngleAxisf(pitch1, Eigen::Vector3f::UnitY())
   //     * Eigen::AngleAxisf(yaw1, Eigen::Vector3f::UnitZ());
   // std::cout << waypt_q_out.coeffs() << std::endl;
+}
+
+
+TEST(Common, EulerToQuaternion) {
+  ros::Time::init();
+  const Eigen::Vector3f in_waypt(0.f, 0.f, 0.f);
+  Eigen::Vector3f out_waypt;
+  Eigen::Quaternionf out_q;
+
+  for (float yaw = -0.1f; yaw < 0.1f; yaw+=0.01f) {
+    geometry_msgs::PoseStamped gmps = createPoseMsg(in_waypt, yaw);
+
+    printf("geometry w %f, x %f, y %f, z %f \n", gmps.pose.orientation.w, gmps.pose.orientation.x, gmps.pose.orientation.y, gmps.pose.orientation.z);
+    createPoseMsg(out_waypt, out_q, in_waypt, yaw);
+    printf("eigen w %f, x %f, y %f, z %f \n", out_q.w(), out_q.x(), out_q.y(), out_q.z());
+  }
+
+
 }

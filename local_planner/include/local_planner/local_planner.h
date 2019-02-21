@@ -177,8 +177,10 @@ class LocalPlanner {
 
   /**
   * @brief     setter method for vehicle position
-  * @param[in] mgs, position message coming from the FCU
+  * @param[in] pos, vehicle position coming from the FCU
+  * @param[in] q, vehicle orientation coming from the FCU
   **/
+  void setPose(const geometry_msgs::PoseStamped msg);
   void setPose(const Eigen::Vector3f &pos, const Eigen::Quaternionf &q);
   /**
   * @brief     setter method for mission goal

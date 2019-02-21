@@ -39,9 +39,9 @@ class WaypointGenerator {
 
   Eigen::Vector3f smoothed_goto_location_ = Eigen::Vector3f::Zero();
   Eigen::Vector3f smoothed_goto_location_velocity_ = Eigen::Vector3f::Zero();
-  Eigen::Vector3f position_;
-  Eigen::Vector3f velocity_;
-  Eigen::Vector3f goal_;
+  Eigen::Vector3f position_ = Eigen::Vector3f::Zero();
+  Eigen::Vector3f velocity_ = Eigen::Vector3f::Zero();
+  Eigen::Vector3f goal_ = Eigen::Vector3f::Zero();
   float curr_yaw_;
   float curr_vel_magnitude_;
   ros::Time last_time_{99999.};
