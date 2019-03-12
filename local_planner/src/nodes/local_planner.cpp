@@ -167,11 +167,13 @@ void LocalPlanner::determineStrategy() {
   }
 
   if (!reach_altitude_) {
+    printf("LP GOAL %f %f %f \n", goal_.x(), goal_.y(), goal_.z());
+    printf("goal %f takeoff %f \n", goal_.z(), take_off_pose_.z() );
     starting_height_ = std::max(goal_.z() / 2.0f, take_off_pose_.z() + 1.0f);
     ROS_INFO("\033[1;35m[OA] Reach height (%f) first: Go fast\n \033[0m",
              starting_height_);
     waypoint_type_ = reachHeight;
-
+    printf("posz %f > starting_height %f \n",position_.z(), starting_height_ );
     if (position_.z() > starting_height_) {
       reach_altitude_ = true;
       waypoint_type_ = direct;

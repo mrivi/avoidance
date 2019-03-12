@@ -28,7 +28,7 @@ void WaypointGenerator::calculateWaypoint() {
         hover_position_ = position_;
       }
       output_.goto_position = hover_position_;
-      ROS_DEBUG("[WG] Hover at: [%f, %f, %f].", output_.goto_position.x(),
+      printf("[WG] Hover at: [%f, %f, %f]\n", output_.goto_position.x(),
                 output_.goto_position.y(), output_.goto_position.z());
       getPathMsg();
       break;
@@ -102,6 +102,7 @@ void WaypointGenerator::updateState(const Eigen::Vector3f& act_pose,
   position_ = act_pose;
   velocity_ = vel;
   goal_ = goal;
+  printf("WP GOAL %f %f %f \n", goal_.x(), goal_.y(), goal_.z());
   tf::Quaternion tf_q(q.x(), q.y(), q.z(), q.w());
   tf::Matrix3x3 tf_m(tf_q);
   double roll, pitch, yaw;
@@ -110,6 +111,7 @@ void WaypointGenerator::updateState(const Eigen::Vector3f& act_pose,
 
   if (stay) {
     planner_info_.waypoint_type = hover;
+    printf("(((((((((HOVER)))))))))\n" );
   }
   is_airborne_ = is_airborne;
 
@@ -170,10 +172,13 @@ void WaypointGenerator::reachGoalAltitudeFirst() {
   // goal_.z() = planner_info_.starting_height;
 
   // Only move the setpoint if drone is in the air
+  printf("is_airborne_ %d, position_.z() %f, planner_info_.starting_height %f \n", is_airborne_, position_.z(),
+  planner_info_.starting_height);
   if (is_airborne_) {
     // Ascend/Descend to goal altitude
     if (position_.z() <= planner_info_.starting_height) {
       output_.goto_position.z() += 1.0f;
+      printf("output_.goto_position.z() + 1.f %f \n", output_.goto_position.z());
     } else {
       output_.goto_position.z() -= 1.0f;
     }
@@ -218,7 +223,7 @@ void WaypointGenerator::smoothWaypoint(float dt) {
   smoothed_goto_location_ += smoothed_goto_location_velocity_ * dt;
   output_.smoothed_goto_position = smoothed_goto_location_;
 
-  ROS_DEBUG("[WG] Smoothed GoTo location: %f, %f, %f, with dt=%f",
+  ROS_INFO("[WG] Smoothed GoTo location: %f, %f, %f, with dt=%f",
             output_.smoothed_goto_position.x(),
             output_.smoothed_goto_position.y(),
             output_.smoothed_goto_position.z(), dt);
@@ -257,9 +262,11 @@ void WaypointGenerator::adaptSpeed() {
 
   // If the goal is so close, that the speed-adapted way point would overreach
   Eigen::Vector3f pose_to_goal = goal_ - position_;
+  printf("AS goal %f %f %f pose %f %f %f norm %f speed %f \n", goal_.x(), goal_.y(), goal_.z(),
+  position_.x(), position_.y(), position_.z(),pose_to_goal.norm(), speed_);
   if (pose_to_goal.norm() < speed_) {
     output_.adapted_goto_position = goal_;
-
+    printf("output_.adapted_goto_position %f %f %f \n", output_.adapted_goto_position.x(), output_.adapted_goto_position.y(), output_.adapted_goto_position.z());
     // First time we reach this goal, remember the heading
     if (!std::isfinite(heading_at_goal_)) {
       heading_at_goal_ = curr_yaw_;
@@ -277,6 +284,8 @@ void WaypointGenerator::adaptSpeed() {
       angle_diff_deg =
           std::min(h_FOV_ / 2, angle_diff_deg);  // Clamp at h_FOV/2
       speed_ *= (1.0f - 2 * angle_diff_deg / h_FOV_);
+    } else {
+      printf("don't check fov \n" );
     }
 
     // Scale the pose_to_wp by the speed
@@ -284,6 +293,7 @@ void WaypointGenerator::adaptSpeed() {
     if (pose_to_wp.norm() > 0.1f) pose_to_wp.normalize();
     pose_to_wp *= speed_;
 
+    printf("pose_to_wp %f %f %f speed %f \n", pose_to_wp.x(), pose_to_wp.y(), pose_to_wp.z(), speed_);
     heading_at_goal_ = NAN;
     output_.adapted_goto_position = position_ + pose_to_wp;
   }
