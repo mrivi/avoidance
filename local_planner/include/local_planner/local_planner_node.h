@@ -118,6 +118,7 @@ class LocalPlannerNode {
   geometry_msgs::Point newest_adapted_waypoint_position_;
   geometry_msgs::Point last_adapted_waypoint_position_;
   geometry_msgs::PoseStamped goal_msg_;
+  geometry_msgs::PoseStamped prev_goal_;
 
   ros::Time last_wp_time_;
   ros::Time t_status_sent_;

@@ -50,8 +50,32 @@ void WaypointGenerator::calculateWaypoint() {
         output_.goto_position = polarToCartesian(p_pol, position_);
       } else {
         ROS_DEBUG("[WG] No valid tree, going straight");
-        goStraight();
-        output_.waypoint_type = direct;
+
+        Eigen::Vector2f u_prev_to_goal = (goal_ - prev_goal_).head<2>();
+        u_prev_to_goal = u_prev_to_goal.normalized();
+
+        Eigen::Vector2f pos_to_goal = (goal_ - position_).head<2>();
+        Eigen::Vector2f prev_to_pos = (position_ - prev_goal_).head<2>();
+
+        Eigen::Vector2f prev_goal_2f = prev_goal_.head<2>();
+        Eigen::Vector2f pos_2f = position_.head<2>();
+
+        Eigen::Vector2f closest_pt = prev_goal_2f + ( u_prev_to_goal * u_prev_to_goal.dot(prev_to_pos));
+
+        if ((pos_2f - closest_pt).norm() > 3.0) {
+          float len = pos_to_goal.norm() * std::tan(0.017f);
+          Eigen::Vector3f tmp_goal;
+          tmp_goal.x() = closest_pt.x() + len * u_prev_to_goal.x();
+          tmp_goal.y() = closest_pt.y() + len * u_prev_to_goal.y();
+          tmp_goal.z() = goal_.z();
+          printf("TMP GOAL %f %f %f \n",tmp_goal.x(), tmp_goal.y(), tmp_goal.z() );
+
+          Eigen::Vector3f dir = (tmp_goal - position_).normalized();
+          output_.goto_position = position_ + dir;
+        } else {
+          output_.waypoint_type = direct;
+          goStraight();
+        }
       }
       getPathMsg();
       break;
@@ -83,11 +107,13 @@ void WaypointGenerator::setFOV(float h_FOV, float v_FOV) {
 void WaypointGenerator::updateState(const Eigen::Vector3f& act_pose,
                                     const Eigen::Quaternionf& q,
                                     const Eigen::Vector3f& goal,
+                                    const Eigen::Vector3f& prev_goal,
                                     const Eigen::Vector3f& vel, bool stay,
                                     bool is_airborne) {
   position_ = act_pose;
   velocity_ = vel;
   goal_ = goal;
+  prev_goal_ = prev_goal;
   tf::Quaternion tf_q(q.x(), q.y(), q.z(), q.w());
   tf::Matrix3x3 tf_m(tf_q);
   double roll, pitch, yaw;
