@@ -35,6 +35,8 @@ class WaypointGenerator {
   Eigen::Vector3f velocity_ = Eigen::Vector3f(NAN, NAN, NAN);
   Eigen::Vector3f goal_ = Eigen::Vector3f(NAN, NAN, NAN);
   Eigen::Vector3f prev_goal_ = Eigen::Vector3f(NAN, NAN, NAN);
+  Eigen::Vector2f closest_pt_;
+  Eigen::Vector3f tmp_goal_;
   float last_yaw_ = NAN;
   float curr_yaw_ = NAN;
   ros::Time last_time_{99999.};
@@ -145,6 +147,7 @@ class WaypointGenerator {
   **/
   virtual ros::Time getSystemTime();
 
+  void getPointsForVis(Eigen::Vector3f &closest_pt, Eigen::Vector3f &deg60_pt);
   WaypointGenerator() = default;
   virtual ~WaypointGenerator() = default;
 };

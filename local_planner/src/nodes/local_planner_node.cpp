@@ -290,6 +290,10 @@ void LocalPlannerNode::calculateWaypoints(bool hover) {
       hover, is_airborne);
   waypointResult result = wp_generator_->getWaypoints();
 
+   Eigen::Vector3f closest_pt;
+   Eigen::Vector3f deg60_pt;
+  wp_generator_->getPointsForVis(closest_pt, deg60_pt);
+
   last_waypoint_position_ = newest_waypoint_position_;
   newest_waypoint_position_ = toPoint(result.smoothed_goto_position);
   last_adapted_waypoint_position_ = newest_adapted_waypoint_position_;
@@ -306,6 +310,8 @@ void LocalPlannerNode::calculateWaypoints(bool hover) {
   visualizer_.publishCurrentSetpoint(
       toTwist(result.linear_velocity_wp, result.angular_velocity_wp),
       result.waypoint_type, newest_pose_.pose.position);
+
+  visualizer_.publishPoints(closest_pt, deg60_pt);
 
   // send waypoints to mavros
   mavros_msgs::Trajectory obst_free_path = {};

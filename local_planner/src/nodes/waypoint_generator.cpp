@@ -60,17 +60,16 @@ void WaypointGenerator::calculateWaypoint() {
         Eigen::Vector2f prev_goal_2f = prev_goal_.head<2>();
         Eigen::Vector2f pos_2f = position_.head<2>();
 
-        Eigen::Vector2f closest_pt = prev_goal_2f + ( u_prev_to_goal * u_prev_to_goal.dot(prev_to_pos));
+        closest_pt_ = prev_goal_2f + ( u_prev_to_goal * u_prev_to_goal.dot(prev_to_pos));
 
-        if ((pos_2f - closest_pt).norm() > 3.0) {
-          float len = pos_to_goal.norm() * std::tan(0.017f);
-          Eigen::Vector3f tmp_goal;
-          tmp_goal.x() = closest_pt.x() + len * u_prev_to_goal.x();
-          tmp_goal.y() = closest_pt.y() + len * u_prev_to_goal.y();
-          tmp_goal.z() = goal_.z();
-          printf("TMP GOAL %f %f %f \n",tmp_goal.x(), tmp_goal.y(), tmp_goal.z() );
+        if ((pos_2f - closest_pt_).norm() > speed_) {
+          float len = (pos_2f - closest_pt_).norm() * std::cos(DEG_TO_RAD * 60.0f) /  std::sin(DEG_TO_RAD *60.0f);
+          tmp_goal_.x() = closest_pt_.x() + len * u_prev_to_goal.x();
+          tmp_goal_.y() = closest_pt_.y() + len * u_prev_to_goal.y();
+          tmp_goal_.z() = goal_.z();
+          printf("TMP GOAL %f %f %f \n",tmp_goal_.x(), tmp_goal_.y(), tmp_goal_.z() );
 
-          Eigen::Vector3f dir = (tmp_goal - position_).normalized();
+          Eigen::Vector3f dir = (tmp_goal_ - position_).normalized();
           output_.goto_position = position_ + dir;
         } else {
           output_.waypoint_type = direct;
@@ -310,5 +309,12 @@ waypointResult WaypointGenerator::getWaypoints() {
 
 void WaypointGenerator::setPlannerInfo(const avoidanceOutput& input) {
   planner_info_ = input;
+}
+
+void WaypointGenerator::getPointsForVis(Eigen::Vector3f &closest_pt, Eigen::Vector3f &deg60_pt) {
+  closest_pt.x() = closest_pt_.x();
+  closest_pt.y() = closest_pt_.y();
+  closest_pt.z() = goal_.z();
+  deg60_pt = tmp_goal_;
 }
 }

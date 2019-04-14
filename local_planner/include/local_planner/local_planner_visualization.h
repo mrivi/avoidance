@@ -139,6 +139,8 @@ class LocalPlannerVisualization {
   void publishGround(const Eigen::Vector3f& drone_pos, float box_radius,
                      float ground_distance) const;
 
+  void publishPoints( Eigen::Vector3f &closest_pt,  Eigen::Vector3f &deg60_pt);
+
  private:
   ros::Publisher local_pointcloud_pub_;
   ros::Publisher pointcloud_size_pub_;
@@ -158,6 +160,8 @@ class LocalPlannerVisualization {
   ros::Publisher initial_height_pub_;
   ros::Publisher histogram_image_pub_;
   ros::Publisher cost_image_pub_;
+  ros::Publisher closest_point_pub_;
+  ros::Publisher deg60_point_pub_;
 
   int path_length_ = 0;
 };
