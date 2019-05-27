@@ -92,7 +92,6 @@ include_directories(
 # )
 set(LANDING_SITE_DETECTION_CPP_FILES   "src/nodes/landing_site_detection_node.cpp"
                                        "src/nodes/landing_site_detection.cpp"
-                                       "src/nodes/common.cpp"
                                        "src/nodes/waypoint_generator_node.cpp"
                                        "src/nodes/landing_site_detection_visualization.cpp"
 )
