@@ -165,7 +165,7 @@ std::pair<float, float> LandingSiteDetection::computeOnlineMeanVariance(float pr
 }
 
 // set parameters changed by dynamic rconfigure
-void LandingSiteDetection::dynamicReconfigureSetParams(const landing_site_detection::LandingSiteDetectionNodeConfig& config, uint32_t level) {
+void LandingSiteDetection::dynamicReconfigureSetParams(const landing_site_detection::SafeLandingPlannerNodeConfig& config, uint32_t level) {
   size_update_ = false;
   n_points_thr_ = static_cast<float>(config.n_points_threshold);
   std_dev_thr_ = static_cast<float>(config.std_dev_threshold);

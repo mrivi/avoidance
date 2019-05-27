@@ -1,4 +1,4 @@
-#include "landing_site_detection/landing_site_detection_node.hpp"
+#include "landing_site_detection/safe_landing_planner_node.hpp"
 #include "landing_site_detection/landing_site_detection.hpp"
 
 #include <landing_site_detection/LSDGridMsg.h>
@@ -8,7 +8,7 @@ namespace avoidance {
 const Eigen::Vector3f nan_setpoint = Eigen::Vector3f(NAN, NAN, NAN);
 
 
-LandingSiteDetectionNode::LandingSiteDetectionNode(const ros::NodeHandle &nh) : nh_(nh), spin_dt_(0.1) {
+SafeLandingPlannerNode::SafeLandingPlannerNode(const ros::NodeHandle &nh) : nh_(nh), spin_dt_(0.1) {
   landing_site_detection_.reset(new LandingSiteDetection());
 
 #ifndef DISABLE_SIMULATION
@@ -20,12 +20,12 @@ LandingSiteDetectionNode::LandingSiteDetectionNode(const ros::NodeHandle &nh) : 
   std::string camera_topic;
   nh_.getParam("pointcloud_topics", camera_topic);
 
-  dynamic_reconfigure::Server<landing_site_detection::LandingSiteDetectionNodeConfig>::CallbackType f;
-  f = boost::bind(&LandingSiteDetectionNode::dynamicReconfigureCallback, this, _1, _2);
+  dynamic_reconfigure::Server<landing_site_detection::SafeLandingPlannerNodeConfig>::CallbackType f;
+  f = boost::bind(&SafeLandingPlannerNode::dynamicReconfigureCallback, this, _1, _2);
   server_.setCallback(f);
 
-  pose_sub_ = nh_.subscribe<const geometry_msgs::PoseStamped &>("/mavros/local_position/pose", 1, &LandingSiteDetectionNode::positionCallback, this);
-  pointcloud_sub_ = nh_.subscribe<const sensor_msgs::PointCloud2 &>(camera_topic, 1, &LandingSiteDetectionNode::pointCloudCallback, this);
+  pose_sub_ = nh_.subscribe<const geometry_msgs::PoseStamped &>("/mavros/local_position/pose", 1, &SafeLandingPlannerNode::positionCallback, this);
+  pointcloud_sub_ = nh_.subscribe<const sensor_msgs::PointCloud2 &>(camera_topic, 1, &SafeLandingPlannerNode::pointCloudCallback, this);
 
   mavros_system_status_pub_ = nh_.advertise<mavros_msgs::CompanionProcessStatus>("/mavros/companion_process/status", 1);
   grid_pub_ = nh_.advertise<landing_site_detection::LSDGridMsg>("/grid_lsd", 1);
@@ -34,17 +34,17 @@ LandingSiteDetectionNode::LandingSiteDetectionNode(const ros::NodeHandle &nh) : 
 
 }
 
-void LandingSiteDetectionNode::dynamicReconfigureCallback(landing_site_detection::LandingSiteDetectionNodeConfig& config, uint32_t level) {
+void SafeLandingPlannerNode::dynamicReconfigureCallback(landing_site_detection::SafeLandingPlannerNodeConfig& config, uint32_t level) {
   landing_site_detection_->dynamicReconfigureSetParams(config, level);
 }
 
-void LandingSiteDetectionNode::positionCallback(const geometry_msgs::PoseStamped &msg) {
+void SafeLandingPlannerNode::positionCallback(const geometry_msgs::PoseStamped &msg) {
   previous_pose_ = current_pose_;
   current_pose_ = msg;
   position_received_ = true;
 }
 
-void LandingSiteDetectionNode::pointCloudCallback(const sensor_msgs::PointCloud2 &msg) {
+void SafeLandingPlannerNode::pointCloudCallback(const sensor_msgs::PointCloud2 &msg) {
   if (tf_listener_.canTransform("/local_origin", msg.header.frame_id, ros::Time(0))) {
     try {
       pcl::PointCloud<pcl::PointXYZ> pcl_cloud;
@@ -69,11 +69,11 @@ void LandingSiteDetectionNode::pointCloudCallback(const sensor_msgs::PointCloud2
   }
 }
 
-void LandingSiteDetectionNode::startNode() {
-  cmdloop_timer_ = nh_.createTimer(ros::Duration(spin_dt_), boost::bind(&LandingSiteDetectionNode::cmdLoopCallback, this, _1));
+void SafeLandingPlannerNode::startNode() {
+  cmdloop_timer_ = nh_.createTimer(ros::Duration(spin_dt_), boost::bind(&SafeLandingPlannerNode::cmdLoopCallback, this, _1));
 }
 
-void LandingSiteDetectionNode::cmdLoopCallback(const ros::TimerEvent& event) {
+void SafeLandingPlannerNode::cmdLoopCallback(const ros::TimerEvent& event) {
   status_msg_.state = static_cast<int>(avoidance::MAV_STATE::MAV_STATE_ACTIVE);
 
   ros::Time start_query_position = ros::Time::now();
@@ -106,7 +106,7 @@ void LandingSiteDetectionNode::cmdLoopCallback(const ros::TimerEvent& event) {
 
 }
 
-void LandingSiteDetectionNode::checkFailsafe(ros::Duration since_last_algo, ros::Duration since_start) {
+void SafeLandingPlannerNode::checkFailsafe(ros::Duration since_last_algo, ros::Duration since_start) {
   ros::Duration timeout_termination =
     ros::Duration(landing_site_detection_->timeout_termination_);
   ros::Duration timeout_critical =
@@ -119,14 +119,14 @@ void LandingSiteDetectionNode::checkFailsafe(ros::Duration since_last_algo, ros:
   }
 }
 
-void LandingSiteDetectionNode::publishSystemStatus() {
+void SafeLandingPlannerNode::publishSystemStatus() {
   status_msg_.header.stamp = ros::Time::now();
   status_msg_.component = 196;  // MAV_COMPONENT_ID_AVOIDANCE we need to add a new component
   mavros_system_status_pub_.publish(status_msg_);
   t_status_sent_ = ros::Time::now();
 }
 
-void LandingSiteDetectionNode::publishSerialGrid() {
+void SafeLandingPlannerNode::publishSerialGrid() {
   static int grid_seq = 0;
   Grid prev_grid = landing_site_detection_->getPreviousGrid();
   landing_site_detection::LSDGridMsg grid;

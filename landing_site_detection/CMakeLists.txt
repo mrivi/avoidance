@@ -48,7 +48,7 @@ generate_messages(
 
 ## Generate dynamic reconfigure parameters in the 'cfg' folder
 generate_dynamic_reconfigure_options(
-  cfg/landing_site_detection_node.cfg
+  cfg/safe_landing_planner_node.cfg
   cfg/waypoint_generator_node.cfg
 )
 
@@ -90,7 +90,7 @@ include_directories(
 # add_library(avoidance
 #   src/${PROJECT_NAME}/avoidance.cpp
 # )
-set(LANDING_SITE_DETECTION_CPP_FILES   "src/nodes/landing_site_detection_node.cpp"
+set(LANDING_SITE_DETECTION_CPP_FILES   "src/nodes/safe_landing_planner_node.cpp"
                                        "src/nodes/landing_site_detection.cpp"
                                        "src/nodes/waypoint_generator_node.cpp"
                                        "src/nodes/landing_site_detection_visualization.cpp"
