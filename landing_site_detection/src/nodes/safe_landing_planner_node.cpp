@@ -8,7 +8,7 @@ const Eigen::Vector3f nan_setpoint = Eigen::Vector3f(NAN, NAN, NAN);
 
 
 SafeLandingPlannerNode::SafeLandingPlannerNode(const ros::NodeHandle &nh) : nh_(nh), spin_dt_(0.1) {
-  landing_site_detection_.reset(new SafeLandingPlanner());
+  safe_landing_planner_.reset(new SafeLandingPlanner());
 
 #ifndef DISABLE_SIMULATION
   world_visualizer_.reset(new avoidance::WorldVisualizer(nh_));
@@ -34,7 +34,7 @@ SafeLandingPlannerNode::SafeLandingPlannerNode(const ros::NodeHandle &nh) : nh_(
 }
 
 void SafeLandingPlannerNode::dynamicReconfigureCallback(landing_site_detection::SafeLandingPlannerNodeConfig& config, uint32_t level) {
-  landing_site_detection_->dynamicReconfigureSetParams(config, level);
+  safe_landing_planner_->dynamicReconfigureSetParams(config, level);
 }
 
 void SafeLandingPlannerNode::positionCallback(const geometry_msgs::PoseStamped &msg) {
@@ -58,7 +58,7 @@ void SafeLandingPlannerNode::pointCloudCallback(const sensor_msgs::PointCloud2 &
       // transform cloud to /local_origin frame
       pcl_ros::transformPointCloud("/local_origin", pcl_cloud, pcl_cloud, tf_listener_);
 
-      landing_site_detection_->cloud_ = std::move(pcl_cloud);
+      safe_landing_planner_->cloud_ = std::move(pcl_cloud);
       cloud_transformed_ = true;
       // data_ready_cv_.notify_one();
 
@@ -79,7 +79,7 @@ void SafeLandingPlannerNode::cmdLoopCallback(const ros::TimerEvent& event) {
   while (!cloud_transformed_ && ros::ok()) {
     ros::getGlobalCallbackQueue()->callAvailable(ros::WallDuration(0.1));
     ros::Duration since_query = ros::Time::now() - start_query_position;
-    if (since_query > ros::Duration(landing_site_detection_->timeout_termination_)) {
+    if (since_query > ros::Duration(safe_landing_planner_->timeout_termination_)) {
       status_msg_.state = static_cast<int>(avoidance::MAV_STATE::MAV_STATE_FLIGHT_TERMINATION);
       publishSystemStatus();
     }
@@ -91,10 +91,10 @@ void SafeLandingPlannerNode::cmdLoopCallback(const ros::TimerEvent& event) {
   ros::Duration since_start = now - start_time_;
   checkFailsafe(since_last_algo, since_start);
 
-  landing_site_detection_->setPose(avoidance::toEigen(current_pose_.pose.position),
+  safe_landing_planner_->setPose(avoidance::toEigen(current_pose_.pose.position),
                           avoidance::toEigen(current_pose_.pose.orientation));
-  landing_site_detection_->runSafeLandingPlanner();
-  visualizer_.visualizeSafeLandingPlanner(*(landing_site_detection_.get()), current_pose_.pose.position, previous_pose_.pose.position);
+  safe_landing_planner_->runSafeLandingPlanner();
+  visualizer_.visualizeSafeLandingPlanner(*(safe_landing_planner_.get()), current_pose_.pose.position, previous_pose_.pose.position);
   publishSerialGrid();
   last_algo_time_ = ros::Time::now();
   cloud_transformed_ = false;
@@ -107,9 +107,9 @@ void SafeLandingPlannerNode::cmdLoopCallback(const ros::TimerEvent& event) {
 
 void SafeLandingPlannerNode::checkFailsafe(ros::Duration since_last_algo, ros::Duration since_start) {
   ros::Duration timeout_termination =
-    ros::Duration(landing_site_detection_->timeout_termination_);
+    ros::Duration(safe_landing_planner_->timeout_termination_);
   ros::Duration timeout_critical =
-    ros::Duration(landing_site_detection_->timeout_critical_);
+    ros::Duration(safe_landing_planner_->timeout_critical_);
 
   if (since_last_algo > timeout_termination && since_start > timeout_termination) {
     status_msg_.state = static_cast<int>(avoidance::MAV_STATE::MAV_STATE_FLIGHT_TERMINATION);
@@ -127,7 +127,7 @@ void SafeLandingPlannerNode::publishSystemStatus() {
 
 void SafeLandingPlannerNode::publishSerialGrid() {
   static int grid_seq = 0;
-  Grid prev_grid = landing_site_detection_->getPreviousGrid();
+  Grid prev_grid = safe_landing_planner_->getPreviousGrid();
   landing_site_detection::LSDGridMsg grid;
   grid.header.frame_id = "local_origin";
   grid.header.seq = grid_seq;
@@ -189,7 +189,7 @@ void SafeLandingPlannerNode::publishSerialGrid() {
       grid.counter.data.push_back(counter(i,j));
     }
   }
-  Eigen::Vector2i pos_index = landing_site_detection_->getPositionIndex();
+  Eigen::Vector2i pos_index = safe_landing_planner_->getPositionIndex();
   grid.curr_pos_index.x = static_cast<float>(pos_index.x());
   grid.curr_pos_index.y = static_cast<float>(pos_index.y());
 
