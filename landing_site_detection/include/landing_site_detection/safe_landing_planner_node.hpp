@@ -19,7 +19,7 @@
 #include <avoidance/common.h>
 
 #include "landing_site_detection.hpp"
-#include "landing_site_detection_visualization.hpp"
+#include "safe_landing_planner_visualization.hpp"
 
 
 namespace avoidance {
@@ -64,7 +64,7 @@ namespace avoidance {
     ros::Time last_algo_time_ = ros::Time(0.0);
     ros::Time t_status_sent_ = ros::Time(0.0);
 
-    LandingSiteDetectionVisualization visualizer_;
+    SafeLandingPlannerVisualization visualizer_;
 
     bool position_received_ = false;
     bool cloud_transformed_ = false;

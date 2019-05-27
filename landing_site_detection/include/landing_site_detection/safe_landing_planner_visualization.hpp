@@ -6,10 +6,10 @@
 
 namespace avoidance {
 
-class LandingSiteDetectionVisualization {
+class SafeLandingPlannerVisualization {
 public:
-  LandingSiteDetectionVisualization() = default;
-  ~LandingSiteDetectionVisualization() = default;
+  SafeLandingPlannerVisualization() = default;
+  ~SafeLandingPlannerVisualization() = default;
 
   /**
   * @brief      initializes all publishers used for local planner visualization
@@ -17,7 +17,7 @@ public:
   void initializePublishers(ros::NodeHandle& nh);
 
   /**
-  * @brief injects into the LandingSiteDetectionVisualization class, all the data to be visualized
+  * @brief injects into the SafeLandingPlannerVisualization class, all the data to be visualized
   * @param[in] planner, LandingSiteDetection class
   * @param[in] pos, current vehicle position
   * @param[in] last_pos, previous vehicle position

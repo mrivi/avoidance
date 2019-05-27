@@ -1,4 +1,4 @@
-#include "landing_site_detection/landing_site_detection_visualization.hpp"
+#include "landing_site_detection/safe_landing_planner_visualization.hpp"
 
 #include <pcl/point_cloud.h>
 #include <pcl_ros/point_cloud.h>
@@ -7,7 +7,7 @@
 
 namespace avoidance {
 
-void LandingSiteDetectionVisualization::initializePublishers(ros::NodeHandle& nh) {
+void SafeLandingPlannerVisualization::initializePublishers(ros::NodeHandle& nh) {
 
   local_pointcloud_pub_ = nh.advertise<pcl::PointCloud<pcl::PointXYZI>>("/grid_pointcloud", 1);
   path_actual_pub_ = nh.advertise<visualization_msgs::Marker>("/path_actual", 1);
@@ -16,7 +16,7 @@ void LandingSiteDetectionVisualization::initializePublishers(ros::NodeHandle& nh
   std_dev_pub_ = nh.advertise<visualization_msgs::MarkerArray>("/grid_std_dev", 1);
 }
 
-void LandingSiteDetectionVisualization::visualizeLandingSiteDetection(const LandingSiteDetection &planner, const geometry_msgs::Point &pos,
+void SafeLandingPlannerVisualization::visualizeLandingSiteDetection(const LandingSiteDetection &planner, const geometry_msgs::Point &pos,
    const geometry_msgs::Point &last_pos) {
   local_pointcloud_pub_.publish(planner.visualization_cloud_);
   publishGrid(planner.getGrid(), pos, planner.getSmoothingSize());
@@ -25,7 +25,7 @@ void LandingSiteDetectionVisualization::visualizeLandingSiteDetection(const Land
   publishPaths(pos, last_pos);
 }
 
-void LandingSiteDetectionVisualization::publishMean(const Grid &grid) {
+void SafeLandingPlannerVisualization::publishMean(const Grid &grid) {
   visualization_msgs::MarkerArray marker_array;
 
   visualization_msgs::Marker cell;
@@ -76,7 +76,7 @@ void LandingSiteDetectionVisualization::publishMean(const Grid &grid) {
   mean_pub_.publish(marker_array);
 }
 
-void LandingSiteDetectionVisualization::HSVtoRGB(float& fR, float& fG, float& fB, float& fH, float& fS, float& fV) {
+void SafeLandingPlannerVisualization::HSVtoRGB(float& fR, float& fG, float& fB, float& fH, float& fS, float& fV) {
   float fC = fV * fS; // Chroma
   float fHPrime = fmod(fH / 60.0, 6);
   float fX = fC * (1 - fabs(fmod(fHPrime, 2) - 1));
@@ -117,7 +117,7 @@ void LandingSiteDetectionVisualization::HSVtoRGB(float& fR, float& fG, float& fB
   fB += fM;
 }
 
-void LandingSiteDetectionVisualization::publishStandardDeviation(const Grid &grid){
+void SafeLandingPlannerVisualization::publishStandardDeviation(const Grid &grid){
   visualization_msgs::MarkerArray marker_array;
 
   visualization_msgs::Marker cell;
@@ -168,7 +168,7 @@ void LandingSiteDetectionVisualization::publishStandardDeviation(const Grid &gri
 
 }
 
-void LandingSiteDetectionVisualization::publishGrid(const Grid &grid, const geometry_msgs::Point& pos, float smoothing_size) const{
+void SafeLandingPlannerVisualization::publishGrid(const Grid &grid, const geometry_msgs::Point& pos, float smoothing_size) const{
   visualization_msgs::MarkerArray marker_array;
 
   visualization_msgs::Marker cell;
@@ -216,7 +216,7 @@ void LandingSiteDetectionVisualization::publishGrid(const Grid &grid, const geom
   grid_pub_.publish(marker_array);
 }
 
-void LandingSiteDetectionVisualization::publishPaths(const geometry_msgs::Point& pos, const geometry_msgs::Point& last_pos) {
+void SafeLandingPlannerVisualization::publishPaths(const geometry_msgs::Point& pos, const geometry_msgs::Point& last_pos) {
   visualization_msgs::Marker path_actual_marker;
   path_actual_marker.header.frame_id = "local_origin";
   path_actual_marker.header.stamp = ros::Time::now();

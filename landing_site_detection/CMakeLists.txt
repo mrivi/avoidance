@@ -93,7 +93,7 @@ include_directories(
 set(LANDING_SITE_DETECTION_CPP_FILES   "src/nodes/safe_landing_planner_node.cpp"
                                        "src/nodes/landing_site_detection.cpp"
                                        "src/nodes/waypoint_generator_node.cpp"
-                                       "src/nodes/landing_site_detection_visualization.cpp"
+                                       "src/nodes/safe_landing_planner_visualization.cpp"
 )
 
 add_library(landing_site_detection     "${LANDING_SITE_DETECTION_CPP_FILES}")
