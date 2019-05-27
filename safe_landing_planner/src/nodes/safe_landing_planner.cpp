@@ -1,4 +1,4 @@
-#include "landing_site_detection/safe_landing_planner.hpp"
+#include "safe_landing_planner/safe_landing_planner.hpp"
 #include "avoidance/common.h"
 
 namespace avoidance {
@@ -165,7 +165,7 @@ std::pair<float, float> SafeLandingPlanner::computeOnlineMeanVariance(float prev
 }
 
 // set parameters changed by dynamic rconfigure
-void SafeLandingPlanner::dynamicReconfigureSetParams(const landing_site_detection::SafeLandingPlannerNodeConfig& config, uint32_t level) {
+void SafeLandingPlanner::dynamicReconfigureSetParams(const safe_landing_planner::SafeLandingPlannerNodeConfig& config, uint32_t level) {
   size_update_ = false;
   n_points_thr_ = static_cast<float>(config.n_points_threshold);
   std_dev_thr_ = static_cast<float>(config.std_dev_threshold);

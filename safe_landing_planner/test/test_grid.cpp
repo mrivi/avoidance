@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
 
-#include "../include/landing_site_detection/grid.hpp"
+#include "../include/safe_landing_planner/grid.hpp"
 
 
 using namespace landing_site_detection;

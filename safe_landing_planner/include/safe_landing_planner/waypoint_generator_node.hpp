@@ -13,8 +13,8 @@
 
 
 #include <dynamic_reconfigure/server.h>
-#include <landing_site_detection/WaypointGeneratorNodeConfig.h>
-#include <landing_site_detection/LSDGridMsg.h>
+#include <safe_landing_planner/WaypointGeneratorNodeConfig.h>
+#include <safe_landing_planner/LSDGridMsg.h>
 #include "grid.hpp"
 
 
@@ -101,7 +101,7 @@ namespace avoidance {
     LSDState lsd_state_ = LSDState::goTo;
     LSDState prev_lsd_state_ = LSDState::goTo;
 
-    dynamic_reconfigure::Server<landing_site_detection::WaypointGeneratorNodeConfig> server_;
+    dynamic_reconfigure::Server<safe_landing_planner::WaypointGeneratorNodeConfig> server_;
 
     /**
     * @brief main loop callback
@@ -114,7 +114,7 @@ namespace avoidance {
     * @param     config, struct containing all the parameters
     * @param     level, bitmask to group together reconfigurable parameters
     **/
-    void dynamicReconfigureCallback(landing_site_detection::WaypointGeneratorNodeConfig& config, uint32_t level);
+    void dynamicReconfigureCallback(safe_landing_planner::WaypointGeneratorNodeConfig& config, uint32_t level);
 
     /**
     * @brif callback for vehicle position and orientation
@@ -138,7 +138,7 @@ namespace avoidance {
     * @brief     callaback with the grid calculated by the landing_site_detection
     * @param[in] msg, grid
     **/
-    void gridCallback(const landing_site_detection::LSDGridMsg &msg);
+    void gridCallback(const safe_landing_planner::LSDGridMsg &msg);
 
     /**
     * @brief     callaback with the vehicle state

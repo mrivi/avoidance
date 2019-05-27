@@ -1,4 +1,4 @@
-#include "landing_site_detection/safe_landing_planner_node.hpp"
+#include "safe_landing_planner/safe_landing_planner_node.hpp"
 
 int main(int argc, char **argv) {
   using namespace avoidance;

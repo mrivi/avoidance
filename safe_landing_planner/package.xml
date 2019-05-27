@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 <package>
-  <name>landing_site_detection</name>
+  <name>safe_landing_planner</name>
   <version>0.0.0</version>
-  <description>Landing site detection module.</description>
+  <description>Safe landing planner module.</description>
 
   <!-- One maintainer tag required, multiple allowed, one person per tag -->
   <!-- Example:  -->

@@ -1,5 +1,5 @@
-#include "landing_site_detection/waypoint_generator_node.hpp"
-#include "landing_site_detection/safe_landing_planner.hpp"
+#include "safe_landing_planner/waypoint_generator_node.hpp"
+#include "safe_landing_planner/safe_landing_planner.hpp"
 #include "avoidance/common.h"
 #include "tf/transform_datatypes.h"
 
@@ -9,7 +9,7 @@ namespace avoidance {
 
 WaypointGeneratorNode::WaypointGeneratorNode(const ros::NodeHandle &nh) : nh_(nh), spin_dt_(0.1) {
 
-  dynamic_reconfigure::Server<landing_site_detection::WaypointGeneratorNodeConfig>::CallbackType f;
+  dynamic_reconfigure::Server<safe_landing_planner::WaypointGeneratorNodeConfig>::CallbackType f;
   f = boost::bind(&WaypointGeneratorNode::dynamicReconfigureCallback, this, _1, _2);
   server_.setCallback(f);
 
@@ -47,7 +47,7 @@ void WaypointGeneratorNode::cmdLoopCallback(const ros::TimerEvent& event) {
 
 }
 
-void WaypointGeneratorNode::dynamicReconfigureCallback(landing_site_detection::WaypointGeneratorNodeConfig& config, uint32_t level) {
+void WaypointGeneratorNode::dynamicReconfigureCallback(safe_landing_planner::WaypointGeneratorNodeConfig& config, uint32_t level) {
   update_smoothing_size_ = false;
   beta_ = static_cast<float>(config.beta);
   landing_radius_ = static_cast<float>(config.landing_radius);
@@ -121,7 +121,7 @@ void WaypointGeneratorNode::stateCallback(const mavros_msgs::State &msg) {
 
 }
 
-void WaypointGeneratorNode::gridCallback(const landing_site_detection::LSDGridMsg &msg) {
+void WaypointGeneratorNode::gridCallback(const safe_landing_planner::LSDGridMsg &msg) {
   grid_lsd_seq_ = msg.header.seq;
   if (grid_lsd_.grid_size_ != msg.grid_size || grid_lsd_.cell_size_ != msg.cell_size) {
     grid_lsd_.grid_size_ = msg.grid_size;

@@ -6,7 +6,7 @@
 #include <pcl/point_types.h>
 
 #include <dynamic_reconfigure/server.h>
-#include <landing_site_detection/SafeLandingPlannerNodeConfig.h>
+#include <safe_landing_planner/SafeLandingPlannerNodeConfig.h>
 
 #include "grid.hpp"
 
@@ -39,7 +39,7 @@ public:
   * @param     config, struct containing all the parameters
   * @param     level, bitmask to group together reconfigurable parameters
   **/
-  void dynamicReconfigureSetParams(const landing_site_detection::SafeLandingPlannerNodeConfig& config, uint32_t level);
+  void dynamicReconfigureSetParams(const safe_landing_planner::SafeLandingPlannerNodeConfig& config, uint32_t level);
 
   /**
   * @brief based on counter, standard devuation and mean, it decides if a cell is landable
@@ -70,7 +70,7 @@ protected:
   int smoothing_size_ = 1;
   bool size_update_ = false;
 
-  landing_site_detection::SafeLandingPlannerNodeConfig rqt_param_config_;
+  safe_landing_planner::SafeLandingPlannerNodeConfig rqt_param_config_;
   Grid grid_ = Grid(10.f, 1.f);
   Grid previous_grid_ = Grid(10.f, 1.f);
 

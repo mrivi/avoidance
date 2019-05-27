@@ -1,6 +1,6 @@
-#include "landing_site_detection/safe_landing_planner_node.hpp"
+#include "safe_landing_planner/safe_landing_planner_node.hpp"
 
-#include <landing_site_detection/LSDGridMsg.h>
+#include <safe_landing_planner/LSDGridMsg.h>
 
 namespace avoidance {
 
@@ -19,7 +19,7 @@ SafeLandingPlannerNode::SafeLandingPlannerNode(const ros::NodeHandle &nh) : nh_(
   std::string camera_topic;
   nh_.getParam("pointcloud_topics", camera_topic);
 
-  dynamic_reconfigure::Server<landing_site_detection::SafeLandingPlannerNodeConfig>::CallbackType f;
+  dynamic_reconfigure::Server<safe_landing_planner::SafeLandingPlannerNodeConfig>::CallbackType f;
   f = boost::bind(&SafeLandingPlannerNode::dynamicReconfigureCallback, this, _1, _2);
   server_.setCallback(f);
 
@@ -27,13 +27,13 @@ SafeLandingPlannerNode::SafeLandingPlannerNode(const ros::NodeHandle &nh) : nh_(
   pointcloud_sub_ = nh_.subscribe<const sensor_msgs::PointCloud2 &>(camera_topic, 1, &SafeLandingPlannerNode::pointCloudCallback, this);
 
   mavros_system_status_pub_ = nh_.advertise<mavros_msgs::CompanionProcessStatus>("/mavros/companion_process/status", 1);
-  grid_pub_ = nh_.advertise<landing_site_detection::LSDGridMsg>("/grid_lsd", 1);
+  grid_pub_ = nh_.advertise<safe_landing_planner::LSDGridMsg>("/grid_lsd", 1);
 
   start_time_ = ros::Time::now();
 
 }
 
-void SafeLandingPlannerNode::dynamicReconfigureCallback(landing_site_detection::SafeLandingPlannerNodeConfig& config, uint32_t level) {
+void SafeLandingPlannerNode::dynamicReconfigureCallback(safe_landing_planner::SafeLandingPlannerNodeConfig& config, uint32_t level) {
   safe_landing_planner_->dynamicReconfigureSetParams(config, level);
 }
 
@@ -128,7 +128,7 @@ void SafeLandingPlannerNode::publishSystemStatus() {
 void SafeLandingPlannerNode::publishSerialGrid() {
   static int grid_seq = 0;
   Grid prev_grid = safe_landing_planner_->getPreviousGrid();
-  landing_site_detection::LSDGridMsg grid;
+  safe_landing_planner::LSDGridMsg grid;
   grid.header.frame_id = "local_origin";
   grid.header.seq = grid_seq;
   grid.grid_size = prev_grid.grid_size_;

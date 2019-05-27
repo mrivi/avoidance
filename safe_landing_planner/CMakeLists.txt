@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 2.8.3)
-project(landing_site_detection)
+project(safe_landing_planner)
 
 add_definitions(-std=c++11)
 
@@ -90,22 +90,22 @@ include_directories(
 # add_library(avoidance
 #   src/${PROJECT_NAME}/avoidance.cpp
 # )
-set(LANDING_SITE_DETECTION_CPP_FILES   "src/nodes/safe_landing_planner_node.cpp"
+set(SAFE_LANDING_PLANNER_CPP_FILES     "src/nodes/safe_landing_planner_node.cpp"
                                        "src/nodes/safe_landing_planner.cpp"
                                        "src/nodes/waypoint_generator_node.cpp"
                                        "src/nodes/safe_landing_planner_visualization.cpp"
 )
 
-add_library(landing_site_detection     "${LANDING_SITE_DETECTION_CPP_FILES}")
+add_library(safe_landing_planner     "${SAFE_LANDING_PLANNER_CPP_FILES}")
 
 ## Add cmake target dependencies of the library
 ## as an example, code may need to be generated before libraries
 ## either from message generation or dynamic reconfigure
-add_dependencies(landing_site_detection ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+add_dependencies(safe_landing_planner ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 ## Declare a C++ executable
 # add_executable(avoidance_node src/avoidance_node.cpp)
-add_executable(landing_site_detection_node src/nodes/landing_site_detection_node_main.cpp)
+add_executable(safe_landing_planner_node src/nodes/landing_site_detection_node_main.cpp)
 add_executable(waypoint_generator_node src/nodes/waypoint_generator_node.cpp)
 
 
@@ -118,11 +118,11 @@ add_executable(waypoint_generator_node src/nodes/waypoint_generator_node.cpp)
 #   ${catkin_LIBRARIES}
 #   ${PCL_LIBRARIES}
 # )
-target_link_libraries(landing_site_detection_node
-  landing_site_detection
+target_link_libraries(safe_landing_planner_node
+  safe_landing_planner
   ${catkin_LIBRARIES} )
 target_link_libraries(waypoint_generator_node
-    landing_site_detection
+    safe_landing_planner
     ${catkin_LIBRARIES} )
 
   #############

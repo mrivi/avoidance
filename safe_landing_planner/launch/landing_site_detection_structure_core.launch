@@ -26,11 +26,11 @@
 
     <!-- Launch Landing Site Detection -->
     <arg name="pointcloud_topics" default="/sc/depth/points"/>
-    <node name="landing_site_detection_node" pkg="landing_site_detection" type="landing_site_detection_node" output="screen" >
+    <node name="safe_landing_planner_node" pkg="safe_landing_planner" type="safe_landing_planner_node" output="screen" >
       <param name="pointcloud_topics" value="$(arg pointcloud_topics)" />
     </node>
 
-    <node name="waypoint_generator_node" pkg="landing_site_detection" type="waypoint_generator_node" output="screen" >
+    <node name="waypoint_generator_node" pkg="safe_landing_planner" type="waypoint_generator_node" output="screen" >
     </node>
 
 

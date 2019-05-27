@@ -14,7 +14,7 @@
 #include <sensor_msgs/PointCloud2.h>
 #include <tf/transform_listener.h>
 #include <dynamic_reconfigure/server.h>
-#include <landing_site_detection/SafeLandingPlannerNodeConfig.h>
+#include <safe_landing_planner/SafeLandingPlannerNodeConfig.h>
 #include <atomic>
 #include <avoidance/common.h>
 
@@ -70,7 +70,7 @@ namespace avoidance {
     bool cloud_transformed_ = false;
     double spin_dt_ = 0.1;
 
-    dynamic_reconfigure::Server<landing_site_detection::SafeLandingPlannerNodeConfig> server_;
+    dynamic_reconfigure::Server<safe_landing_planner::SafeLandingPlannerNodeConfig> server_;
 
     /**
     * @brief main loop callback
@@ -93,7 +93,7 @@ namespace avoidance {
     * @param     config, struct with all the parameters
     * @param     level, bitmsak to group together reconfigurable parameters
     **/
-    void dynamicReconfigureCallback(landing_site_detection::SafeLandingPlannerNodeConfig& config,
+    void dynamicReconfigureCallback(safe_landing_planner::SafeLandingPlannerNodeConfig& config,
                                 uint32_t level);
 
     /**

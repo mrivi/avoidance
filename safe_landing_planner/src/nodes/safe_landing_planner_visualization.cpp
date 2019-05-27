@@ -1,4 +1,4 @@
-#include "landing_site_detection/safe_landing_planner_visualization.hpp"
+#include "safe_landing_planner/safe_landing_planner_visualization.hpp"
 
 #include <pcl/point_cloud.h>
 #include <pcl_ros/point_cloud.h>

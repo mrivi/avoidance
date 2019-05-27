@@ -87,6 +87,9 @@ cat >> launch/landing_site_detection_launch.launch <<- EOM
       <param name="pointcloud_topics" value="\$(arg pointcloud_topics)" />
     </node>
 
+    <node name="waypoint_generator_node" pkg="landing_site_detection" type="waypoint_generator_node" output="screen" >
+    </node>
+
     <!-- switch off and on auto exposure of Realsense cameras, as it does not work on startup -->
     <node name="set_RS_param" pkg="landing_site_detection" type="realsense_params.sh" />
 
