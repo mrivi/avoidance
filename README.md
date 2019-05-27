@@ -301,9 +301,6 @@ You will see an unarmed vehicle on the ground. Open [QGroundControl](http://qgro
 At the land position, the vehicle will start to descend towards the ground until it is at `loiter_height` from the ground/obstacle. Then it will start loitering to evaluate the ground underneeth.
 If the ground is flat, the vehicle will continue landing. Otherwise it will evaluate the close by terrain in a squared spiral pattern until it finds a good enough ground to land on.
 
-The size of the squared shape patch of terrain below the vehicle that is evaluated by the algorithm can be changed to suit different vehicle sizes with the WaypointGeneratorNode parameter `smoothing_land_cell`. The algorithm behaviour will also be affected by the height at which the decision to land or not is taken (`loiter_height` parameter in WaypointGeneratorNode) and by the size of neighborhood filter smoothing (`smoothing_size` in LandingSiteDetectionNode).
-
-For different cameras you might also need to tune the thresholds on the number of points in each bin, standard deviation and mean.  
 # Run on Hardware
 
 ## Prerequisite
@@ -347,8 +344,16 @@ Parameters to set through QGC:
   - Librealsense (Realsense SDK). The installation instructions can be found [here](https://github.com/IntelRealSense/librealsense/blob/master/doc/installation.md)
   - [Librealsense ROS wrappers](https://github.com/intel-ros/realsense.git)
 * Other Required Components for Occipital Structure Core:
-  - SDK
-  - ROS wrapper
+  - Download the [Structure SDK](https://structure.io/developers). Create the `build` directory and build the SDK
+  ```bash
+  mkdir build
+  cd build
+  cmake ..
+  make
+  ```
+  - Clone the [ROS wrapper](https://github.com/Auterion/struct_core_ros)
+  - Copy the shared object `Libraries/Structure/Linux/x86_64/libStructure.so` from the SDK into `/usr/local/lib/`
+  - Copy the headers from `Libraries/Structure/Headers/` in the SDK to the ROS wrapper include directory `~/catkin_ws/src/struct_core_ros/include`
 
 Tested models:
 - local planner: Intel NUC, Jetson TX2, Intel Atom x7-Z8750 (built-in on Intel Aero RTF drone)
@@ -360,15 +365,17 @@ The global planner has been so far tested on a Odroid companion computer by the 
 
 ## Local Planner
 
-Once the catkin workspace has been built, to run the planner with a Realsense D435 camera you can generate the launch file using the script *generate_launchfile.sh*
+Once the catkin workspace has been built, to run the planner with a Realsense D435 or Occipital Structure Core camera you can generate the launch file using the script *generate_launchfile.sh*
 
-1. `export CAMERA_CONFIGS="camera_namespace, realsense_serial_n, tf_x, tf_y, tf_z, tf_yaw, tf_pitch, tf_roll"` where `tf_*` represents the displacement between the camera and the flight controller. If more than one camera is present, list the different camera configuration separated by a semicolon. Within each camera configuration the parameters are separated by commas.  
+1. `export CAMERA_CONFIGS="camera_namespace, camera_type, serial_n, tf_x, tf_y, tf_z, tf_yaw, tf_pitch, tf_roll"` where  `camera_type` is either `realsense` or `struct_core_ros`, `tf_*` represents the displacement between the camera and the flight controller. If more than one camera is present, list the different camera configuration separated by a semicolon. Within each camera configuration the parameters are separated by commas.  
 2. `export DEPTH_CAMERA_FRAME_RATE=frame_rate`. If this variable isn't set, the default frame rate will be taken.
 3. `export VEHICLE_CONFIG=/path/to/params.yaml` where the yaml file contains the value of some parameters different from the defaults set in the cfg file. If this variable isn't set, the default parameters values will be used.
 
+Changing the serial number and `DEPTH_CAMERA_FRAME_RATE` don't have any effect on the Structure Core.
+
 For example:
 ```bash
-export CAMERA_CONFIGS="camera_main,819612070807,0.3,0.32,-0.11,0,0,0"
+export CAMERA_CONFIGS="camera_main,realsense,819612070807,0.3,0.32,-0.11,0,0,0"
 export DEPTH_CAMERA_FRAME_RATE=30
 export VEHICLE_CONFIG=~/catkin_ws/src/avoidance/local_planner/cfg/params_vehicle_1.yaml
 ./tools/generate_launchfile.sh
@@ -389,14 +396,18 @@ log4j.logger.ros.local_planner=DEBUG
 
 ## Safe Landing Planner
 
-Once the catkin workspace has been built, to run the planner with a Occipital Structure Core, run:
+Once the catkin workspace has been built, to run the planner with a Realsense D435 and Occipital Structure Core, you can generate the launch file using the script *generate_launchfile.sh*. The script works the same as described in the section above for the local planner. For example:
+
 ```bash
-roslaunch landing_site_detection landing_site_detection_structure_core.launch
+export CAMERA_CONFIGS="camera_main,struct_core_ros,819612070807,0.3,0.32,-0.11,0,0,0"
+export VEHICLE_CONFIG=~/catkin_ws/src/avoidance/local_planner/cfg/params_vehicle_1.yaml
+./safe_landing_planner/tools/generate_launchfile.sh
+roslaunch safe_landing_planner safe_landing_planner_launch.launch
 ```
 
-For a Realsense D435 camera you can generate the launch file using the script *generate_launchfile.sh*
+The size of the squared shape patch of terrain below the vehicle that is evaluated by the algorithm can be changed to suit different vehicle sizes with the WaypointGeneratorNode parameter `smoothing_land_cell`. The algorithm behavior will also be affected by the height at which the decision to land or not is taken (`loiter_height` parameter in WaypointGeneratorNode) and by the size of neighborhood filter smoothing (`smoothing_size` in LandingSiteDetectionNode).
 
-
+For different cameras you might also need to tune the thresholds on the number of points in each bin, standard deviation and mean.
 
 # Troubleshooting
 
