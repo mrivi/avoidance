@@ -1,5 +1,5 @@
 #!/bin/bash
-cat > launch/landing_site_detection_launch.launch <<- EOM
+cat > launch/safe_landing_planner_launch.launch <<- EOM
 <launch>
     <arg name="ns" default="/"/>
     <arg name="fcu_url" default="udp://:14540@localhost:14557"/>
@@ -50,7 +50,7 @@ for camera in $CAMERA_CONFIGS; do
 		fi
 
     # Append to the launch file
-    cat >> launch/landing_site_detection_launch.launch <<- EOM
+    cat >> launch/safe_landing_planner_launch.launch <<- EOM
 			<node pkg="tf" type="static_transform_publisher" name="tf_$1"
 			 args="$3 $4 $5 $6 $7 $8 fcu $1_link 10"/>
 			<include file="\$(find local_planner)/launch/rs_depthcloud.launch">
@@ -73,25 +73,25 @@ rosrun dynamic_reconfigure dynparam set /$1/stereo_module visual_preset 4
 done
 
 if [ ! -z $VEHICLE_CONFIG ]; then
-cat >> launch/landing_site_detection_launch.launch <<- EOM
+cat >> launch/safe_landing_planner_launch.launch <<- EOM
   <node name="dynparam" pkg="dynamic_reconfigure" type="dynparam" args="load local_planner_node \$(find local_planner)/cfg/$VEHICLE_CONFIG.yaml" />
 EOM
 echo "Adding vehicle paramters: $VEHICLE_CONFIG"
 fi
 
-cat >> launch/landing_site_detection_launch.launch <<- EOM
+cat >> launch/safe_landing_planner_launch.launch <<- EOM
     <!-- Launch avoidance -->
     <arg name="pointcloud_topics" default="$camera_topics"/>
 
-    <node name="landing_site_detection_node" pkg="landing_site_detection" type="landing_site_detection_node" output="screen" >
+    <node name="safe_landing_planner_node" pkg="safe_landing_planner" type="safe_landing_planner_node" output="screen" >
       <param name="pointcloud_topics" value="\$(arg pointcloud_topics)" />
     </node>
 
-    <node name="waypoint_generator_node" pkg="landing_site_detection" type="waypoint_generator_node" output="screen" >
+    <node name="waypoint_generator_node" pkg="safe_landing_planner" type="waypoint_generator_node" output="screen" >
     </node>
 
     <!-- switch off and on auto exposure of Realsense cameras, as it does not work on startup -->
-    <node name="set_RS_param" pkg="landing_site_detection" type="realsense_params.sh" />
+    <node name="set_RS_param" pkg="safe_landing_planner" type="realsense_params.sh" />
 
 </launch>
 EOM

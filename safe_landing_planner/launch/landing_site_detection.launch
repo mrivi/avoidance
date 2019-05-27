@@ -24,6 +24,6 @@
     <node name="waypoint_generator_node" pkg="safe_landing_planner" type="waypoint_generator_node" output="screen" >
     </node>
 
-    <node name="rviz" pkg="rviz" type="rviz" output="screen" args="-d $(find safe_landing_planner)/resource/landing_site_detection.rviz" />
+    <node name="rviz" pkg="rviz" type="rviz" output="screen" args="-d $(find safe_landing_planner)/resource/safe_landing_planner.rviz" />
 
 </launch>

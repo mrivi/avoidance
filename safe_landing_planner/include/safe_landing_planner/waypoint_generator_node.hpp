@@ -135,7 +135,7 @@ namespace avoidance {
     void missionCallback(const mavros_msgs::WaypointList& msg);
 
     /**
-    * @brief     callaback with the grid calculated by the landing_site_detection
+    * @brief     callaback with the grid calculated by the safe_landing_planner
     * @param[in] msg, grid
     **/
     void gridCallback(const safe_landing_planner::LSDGridMsg &msg);

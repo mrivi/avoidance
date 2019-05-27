@@ -105,7 +105,7 @@ add_dependencies(safe_landing_planner ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catk
 
 ## Declare a C++ executable
 # add_executable(avoidance_node src/avoidance_node.cpp)
-add_executable(safe_landing_planner_node src/nodes/landing_site_detection_node_main.cpp)
+add_executable(safe_landing_planner_node src/nodes/safe_landing_planner_node_main.cpp)
 add_executable(waypoint_generator_node src/nodes/waypoint_generator_node.cpp)
 
 
