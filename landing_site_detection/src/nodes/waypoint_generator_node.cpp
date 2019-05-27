@@ -149,6 +149,7 @@ void WaypointGeneratorNode::calculateWaypoint() {
 
   switch (lsd_state_) {
     case LSDState::goTo: {
+
       decision_taken_ = false;
       if (explorarion_is_active_) {
         landing_radius_ = 0.5f;
@@ -158,8 +159,9 @@ void WaypointGeneratorNode::calculateWaypoint() {
       ROS_INFO("\033[1;32m [WGN] goTo %f %f %f - %f %f %f \033[0m\n", goal_.x(), goal_.y(), goal_.z(), velocity_setpoint_.x(), velocity_setpoint_.y(), velocity_setpoint_.z());
 
       is_within_landing_radius_ = (goal_.topRows<2>() - position_.topRows<2>()).norm() < landing_radius_;
-      in_land_vertical_range_ = fabsf(position_.z() - grid_lsd_.mean_(pos_index_.x(), pos_index_.y())) < loiter_height_;
-      std::cout << "xy " << (goal_.topRows<2>() - position_.topRows<2>()).norm() << " z " << fabsf(position_.z() - grid_lsd_.mean_(pos_index_.x(), pos_index_.y()))  << "bin h " << grid_lsd_.mean_(pos_index_.x(), pos_index_.y()) << std::endl;
+      in_land_vertical_range_ = fabsf(position_.z() - grid_lsd_.mean_(pos_index_.x(), pos_index_.y())) < (loiter_height_ + 0.5f) &&
+        fabsf(position_.z() - grid_lsd_.mean_(pos_index_.x(), pos_index_.y())) > (loiter_height_ - 0.5f);
+      ROS_INFO("[WGN] Landing Radius: xy  %f, z %f ", (goal_.topRows<2>() - position_.topRows<2>()).norm(), fabsf(position_.z() - grid_lsd_.mean_(pos_index_.x(), pos_index_.y())));
 
       if (is_within_landing_radius_ && !in_land_vertical_range_ && is_land_waypoint_ && !std::isfinite(velocity_setpoint_.z())) {
         prev_lsd_state_ = LSDState::goTo;
@@ -181,17 +183,17 @@ void WaypointGeneratorNode::calculateWaypoint() {
       if (prev_lsd_state_ != LSDState::altitudeChange) {
         yaw_setpoint_ = yaw_;
       }
-      Eigen::Vector3f tmp_goal = goal_;
       goal_.z() = NAN;
-      Eigen::Vector3f vel_sp_tmp = velocity_setpoint_;
-      vel_sp_tmp.z() = -0.7f;
-      publishTrajectorySetpoints(tmp_goal, vel_sp_tmp, yaw_setpoint_, yaw_speed_setpoint_);
-      ROS_INFO("\033[1;35m [WGN] altitudeChange %f %f %f - %f %f %f \033[0m", tmp_goal.x(),
-    tmp_goal.y(), tmp_goal.z(), vel_sp_tmp.x(), vel_sp_tmp.y(), vel_sp_tmp.z());
+      float direction = fabsf(position_.z() - grid_lsd_.mean_(pos_index_.x(), pos_index_.y())) <= (loiter_height_ - 0.5f) ? 1.f : -1.f;
+      velocity_setpoint_.z() = direction * 0.7f;
+      publishTrajectorySetpoints(goal_, velocity_setpoint_, yaw_setpoint_, yaw_speed_setpoint_);
+      ROS_INFO("\033[1;35m [WGN] altitudeChange %f %f %f - %f %f %f \033[0m", goal_.x(), goal_.y(), goal_.z(), velocity_setpoint_.x(), velocity_setpoint_.y(), velocity_setpoint_.z());
 
       if (explorarion_is_active_) { landing_radius_ = 0.5f; }
       is_within_landing_radius_ = (goal_.topRows<2>() - position_.topRows<2>()).norm() < landing_radius_;
-      in_land_vertical_range_ = fabsf(position_.z() - grid_lsd_.mean_(pos_index_.x(), pos_index_.y())) < loiter_height_;
+      in_land_vertical_range_ = fabsf(position_.z() - grid_lsd_.mean_(pos_index_.x(), pos_index_.y())) < loiter_height_ &&
+        fabsf(position_.z() - grid_lsd_.mean_(pos_index_.x(), pos_index_.y())) > (loiter_height_ - 0.5f);
+      ROS_INFO("[WGN] Landing Radius: xy  %f, z %f ", (goal_.topRows<2>() - position_.topRows<2>()).norm(), fabsf(position_.z() - grid_lsd_.mean_(pos_index_.x(), pos_index_.y())));
 
 
       if (is_within_landing_radius_ && in_land_vertical_range_ && is_land_waypoint_) {
@@ -204,6 +206,7 @@ void WaypointGeneratorNode::calculateWaypoint() {
   }
 
     case LSDState::loiter: {
+
       if (prev_lsd_state_ != LSDState::loiter) {
         loiter_position_ = position_;
         loiter_yaw_ = yaw_;
@@ -217,16 +220,12 @@ void WaypointGeneratorNode::calculateWaypoint() {
           float cell_land_value = static_cast<float>(grid_lsd_.land_(i, j));
           float can_land_hysteresis_prev = can_land_hysteresis_[index];
           can_land_hysteresis_[index] = (beta_ * can_land_hysteresis_prev) + (1.f - beta_) * cell_land_value;
-          std::cout << can_land_hysteresis_[index] << " ";
         }
-        printf("\n");
       }
-      printf("\n");
-      std::cout << "grid seq" << grid_lsd_seq_<< " -> " << start_seq_landing_decision_ << std::endl;
+
       if (abs(grid_lsd_seq_ - start_seq_landing_decision_) > 20) {
         decision_taken_ = true;
         int land_counter = 0;
-        std::cout << "[WGN] decision ";
         for (int i = 0; i < can_land_hysteresis_.size(); i++) {
           std::cout << can_land_hysteresis_[i] << " ";
           if (can_land_hysteresis_[i] > can_land_thr_) {
@@ -237,10 +236,9 @@ void WaypointGeneratorNode::calculateWaypoint() {
             can_land_ = 1;
             decision_taken_ = false;
             in_land_vertical_range_ = false;
-            ROS_INFO("************ Decision changed! Reset!");
+            ROS_INFO("[WGN] Decision changed from can't land to can land!");
           }
         }
-        printf("\n");
       }
 
       publishTrajectorySetpoints(loiter_position_, nan_setpoint, loiter_yaw_, NAN);
@@ -266,7 +264,7 @@ void WaypointGeneratorNode::calculateWaypoint() {
             exploration_anchor_.y() + offset_exploration_setpoint * exploration_pattern[n_explored_pattern_].y(), exploration_anchor_.z());
         velocity_setpoint_ = nan_setpoint;
         lsd_state_ = LSDState::goTo;
-        ROS_INFO("\033[1;36m [WGN] Update to goTo State \033[0m");
+        ROS_INFO("\033[1;32m [WGN] Update to goTo State \033[0m");
       }
 
       break;
@@ -275,7 +273,7 @@ void WaypointGeneratorNode::calculateWaypoint() {
     case LSDState::land:
       loiter_position_.z() = NAN;
       vel_sp = nan_setpoint;
-      vel_sp.z() = -1.f;
+      vel_sp.z() = -.7f;
       publishTrajectorySetpoints(loiter_position_, vel_sp, loiter_yaw_, NAN);
       ROS_INFO("\033[1;36m [WGN] Land %f %f %f - nan nan nan \033[0m\n", loiter_position_.x(), loiter_position_.y(), loiter_position_.z());
       lsd_state_ = LSDState::land;
@@ -299,7 +297,7 @@ void WaypointGeneratorNode::updateLSDState() {
     std::fill(can_land_hysteresis_.begin(), can_land_hysteresis_.end(), 0.f);
     lsd_state_ = LSDState::goTo;
     explorarion_is_active_ = false;
-    std::cout << "Not a land wp " << std::endl;
+    ROS_INFO("[WGN] Not a land waypoint");
   }
 
   return;
