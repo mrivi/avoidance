@@ -1,5 +1,4 @@
 #include "landing_site_detection/safe_landing_planner_node.hpp"
-#include "landing_site_detection/landing_site_detection.hpp"
 
 #include <landing_site_detection/LSDGridMsg.h>
 
@@ -9,7 +8,7 @@ const Eigen::Vector3f nan_setpoint = Eigen::Vector3f(NAN, NAN, NAN);
 
 
 SafeLandingPlannerNode::SafeLandingPlannerNode(const ros::NodeHandle &nh) : nh_(nh), spin_dt_(0.1) {
-  landing_site_detection_.reset(new LandingSiteDetection());
+  landing_site_detection_.reset(new SafeLandingPlanner());
 
 #ifndef DISABLE_SIMULATION
   world_visualizer_.reset(new avoidance::WorldVisualizer(nh_));
@@ -94,8 +93,8 @@ void SafeLandingPlannerNode::cmdLoopCallback(const ros::TimerEvent& event) {
 
   landing_site_detection_->setPose(avoidance::toEigen(current_pose_.pose.position),
                           avoidance::toEigen(current_pose_.pose.orientation));
-  landing_site_detection_->runLandingSiteDetection();
-  visualizer_.visualizeLandingSiteDetection(*(landing_site_detection_.get()), current_pose_.pose.position, previous_pose_.pose.position);
+  landing_site_detection_->runSafeLandingPlanner();
+  visualizer_.visualizeSafeLandingPlanner(*(landing_site_detection_.get()), current_pose_.pose.position, previous_pose_.pose.position);
   publishSerialGrid();
   last_algo_time_ = ros::Time::now();
   cloud_transformed_ = false;

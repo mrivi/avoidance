@@ -1,5 +1,5 @@
 #include "landing_site_detection/waypoint_generator_node.hpp"
-#include "landing_site_detection/landing_site_detection.hpp"
+#include "landing_site_detection/safe_landing_planner.hpp"
 #include "avoidance/common.h"
 #include "tf/transform_datatypes.h"
 

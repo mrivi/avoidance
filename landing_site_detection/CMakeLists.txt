@@ -91,7 +91,7 @@ include_directories(
 #   src/${PROJECT_NAME}/avoidance.cpp
 # )
 set(LANDING_SITE_DETECTION_CPP_FILES   "src/nodes/safe_landing_planner_node.cpp"
-                                       "src/nodes/landing_site_detection.cpp"
+                                       "src/nodes/safe_landing_planner.cpp"
                                        "src/nodes/waypoint_generator_node.cpp"
                                        "src/nodes/safe_landing_planner_visualization.cpp"
 )

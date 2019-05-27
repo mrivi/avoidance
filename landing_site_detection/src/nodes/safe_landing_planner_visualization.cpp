@@ -16,7 +16,7 @@ void SafeLandingPlannerVisualization::initializePublishers(ros::NodeHandle& nh) 
   std_dev_pub_ = nh.advertise<visualization_msgs::MarkerArray>("/grid_std_dev", 1);
 }
 
-void SafeLandingPlannerVisualization::visualizeLandingSiteDetection(const LandingSiteDetection &planner, const geometry_msgs::Point &pos,
+void SafeLandingPlannerVisualization::visualizeSafeLandingPlanner(const SafeLandingPlanner &planner, const geometry_msgs::Point &pos,
    const geometry_msgs::Point &last_pos) {
   local_pointcloud_pub_.publish(planner.visualization_cloud_);
   publishGrid(planner.getGrid(), pos, planner.getSmoothingSize());

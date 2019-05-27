@@ -18,7 +18,7 @@
 #include <atomic>
 #include <avoidance/common.h>
 
-#include "landing_site_detection.hpp"
+#include "safe_landing_planner.hpp"
 #include "safe_landing_planner_visualization.hpp"
 
 
@@ -30,7 +30,7 @@ namespace avoidance {
     SafeLandingPlannerNode(const ros::NodeHandle& nh);
     ~SafeLandingPlannerNode() = default;
 
-    std::unique_ptr<LandingSiteDetection> landing_site_detection_;
+    std::unique_ptr<SafeLandingPlanner> landing_site_detection_;
 
 #ifndef DISABLE_SIMULATION
     std::unique_ptr<avoidance::WorldVisualizer> world_visualizer_;

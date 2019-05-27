@@ -1,6 +1,6 @@
 #pragma once
 
-#include "landing_site_detection.hpp"
+#include "safe_landing_planner.hpp"
 #include <ros/ros.h>
 #include <geometry_msgs/Point.h>
 
@@ -18,11 +18,11 @@ public:
 
   /**
   * @brief injects into the SafeLandingPlannerVisualization class, all the data to be visualized
-  * @param[in] planner, LandingSiteDetection class
+  * @param[in] planner, SafeLandingPlanner class
   * @param[in] pos, current vehicle position
   * @param[in] last_pos, previous vehicle position
   **/
-  void visualizeLandingSiteDetection(const LandingSiteDetection &planner, const geometry_msgs::Point &pos, const geometry_msgs::Point &last_pos);
+  void visualizeSafeLandingPlanner(const SafeLandingPlanner &planner, const geometry_msgs::Point &pos, const geometry_msgs::Point &last_pos);
 
 private:
   ros::Publisher local_pointcloud_pub_;

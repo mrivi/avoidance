@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
 
-#include "../include/landing_site_detection/landing_site_detection.hpp"
+#include "../include/landing_site_detection/safe_landing_planner.hpp"
 #include "../include/landing_site_detection/landing_site_detection_node.hpp"
 
 

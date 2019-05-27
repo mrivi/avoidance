@@ -12,10 +12,10 @@
 
 namespace avoidance {
 
-class LandingSiteDetection {
+class SafeLandingPlanner {
 public:
-  LandingSiteDetection() = default;
-  ~LandingSiteDetection() = default;
+  SafeLandingPlanner() = default;
+  ~SafeLandingPlanner() = default;
 
   pcl::PointCloud<pcl::PointXYZ> cloud_;
   pcl::PointCloud<pcl::PointXYZI> visualization_cloud_;
@@ -33,7 +33,7 @@ public:
   /**
   * @brif runs landing site detection algorithm
   **/
-  void runLandingSiteDetection();
+  void runSafeLandingPlanner();
   /**
   * @brief     sets parameters from ROS parameter server
   * @param     config, struct containing all the parameters

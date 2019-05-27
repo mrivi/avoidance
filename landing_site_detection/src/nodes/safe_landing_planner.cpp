@@ -1,9 +1,9 @@
-#include "landing_site_detection/landing_site_detection.hpp"
+#include "landing_site_detection/safe_landing_planner.hpp"
 #include "avoidance/common.h"
 
 namespace avoidance {
 
-void LandingSiteDetection::runLandingSiteDetection() {
+void SafeLandingPlanner::runSafeLandingPlanner() {
   if (size_update_) {
     grid_.grid_size_ = grid_size_;
     grid_.cell_size_ = cell_size_;
@@ -22,7 +22,7 @@ void LandingSiteDetection::runLandingSiteDetection() {
   isLandingPossible();
 }
 
-void LandingSiteDetection::processPointcloud() {
+void SafeLandingPlanner::processPointcloud() {
   previous_grid_ = grid_;
   grid_seq_ += 1;
   grid_.reset();
@@ -51,7 +51,7 @@ void LandingSiteDetection::processPointcloud() {
 
 }
 
-void LandingSiteDetection::combineGrid() {
+void SafeLandingPlanner::combineGrid() {
   int size = static_cast<int>(std::ceil(grid_.grid_size_ / grid_.cell_size_));
   for (int i = 0; i < size; i++) {
     for (int j = 0; j < size; j++) {
@@ -65,7 +65,7 @@ void LandingSiteDetection::combineGrid() {
   }
 }
 
-void LandingSiteDetection::isLandingPossible() {
+void SafeLandingPlanner::isLandingPossible() {
   int size = static_cast<int>(std::ceil(grid_.grid_size_ / grid_.cell_size_));
   // decide if it's possible to land in each cell based on variance and numeber of points
   for (int i = 0; i < size; i++) {
@@ -129,24 +129,24 @@ void LandingSiteDetection::isLandingPossible() {
   pos_index_ = computeGridIndexes(position_.x(), position_.y());
 }
 
-void LandingSiteDetection::setPose(const Eigen::Vector3f& pos, const Eigen::Quaternionf& q) {
+void SafeLandingPlanner::setPose(const Eigen::Vector3f& pos, const Eigen::Quaternionf& q) {
   position_ = pos;
 }
 
-bool LandingSiteDetection::isInsideGrid(float x, float y) {
+bool SafeLandingPlanner::isInsideGrid(float x, float y) {
   Eigen::Vector2f grid_min, grid_max;
   grid_.getGridLimits(grid_min, grid_max);
   return x < grid_max.x() && x > grid_min.x() && y < grid_max.y() && y > grid_min.y();
 }
 
-Eigen::Vector2i LandingSiteDetection::computeGridIndexes(float x, float y) {
+Eigen::Vector2i SafeLandingPlanner::computeGridIndexes(float x, float y) {
   Eigen::Vector2f grid_min, grid_max;
   grid_.getGridLimits(grid_min, grid_max);
   Eigen::Vector2i idx(static_cast<int>(std::floor((x - grid_min.x()) / grid_.cell_size_)), static_cast<int>(std::floor((y - grid_min.y()) / grid_.cell_size_)));
   return idx;
 }
 
-std::pair<float, float> LandingSiteDetection::computeOnlineMeanVariance(float prev_mean, float prev_variance, float new_value, float seq) {
+std::pair<float, float> SafeLandingPlanner::computeOnlineMeanVariance(float prev_mean, float prev_variance, float new_value, float seq) {
   std::pair<float, float> pair(NAN, NAN);
   pair.first = (prev_mean * (seq - 1) + new_value) / (seq);
 
@@ -165,7 +165,7 @@ std::pair<float, float> LandingSiteDetection::computeOnlineMeanVariance(float pr
 }
 
 // set parameters changed by dynamic rconfigure
-void LandingSiteDetection::dynamicReconfigureSetParams(const landing_site_detection::SafeLandingPlannerNodeConfig& config, uint32_t level) {
+void SafeLandingPlanner::dynamicReconfigureSetParams(const landing_site_detection::SafeLandingPlannerNodeConfig& config, uint32_t level) {
   size_update_ = false;
   n_points_thr_ = static_cast<float>(config.n_points_threshold);
   std_dev_thr_ = static_cast<float>(config.std_dev_threshold);
