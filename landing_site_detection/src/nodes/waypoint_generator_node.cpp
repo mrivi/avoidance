@@ -76,7 +76,8 @@ void WaypointGeneratorNode::positionCallback(const geometry_msgs::PoseStamped &m
 
 void WaypointGeneratorNode::trajectoryCallback(const mavros_msgs::Trajectory& msg) {
 
-  bool update = (avoidance::toEigen(msg.point_2.position) - goal_visualization_).norm()> 0.01;
+  bool update = ((avoidance::toEigen(msg.point_2.position) - goal_visualization_).norm() > 0.01) ||
+  (!std::isfinite(goal_.x()) && !std::isfinite(goal_.y()));
 
   if (update && msg.point_valid[0] == true) {
     goal_ = avoidance::toEigen(msg.point_1.position);
@@ -159,10 +160,9 @@ void WaypointGeneratorNode::calculateWaypoint() {
       ROS_INFO("\033[1;32m [WGN] goTo %f %f %f - %f %f %f \033[0m\n", goal_.x(), goal_.y(), goal_.z(), velocity_setpoint_.x(), velocity_setpoint_.y(), velocity_setpoint_.z());
 
       is_within_landing_radius_ = (goal_.topRows<2>() - position_.topRows<2>()).norm() < landing_radius_;
-      in_land_vertical_range_ = fabsf(position_.z() - grid_lsd_.mean_(pos_index_.x(), pos_index_.y())) < (loiter_height_ + 0.5f) &&
-        fabsf(position_.z() - grid_lsd_.mean_(pos_index_.x(), pos_index_.y())) > (loiter_height_ - 0.5f);
+      in_land_vertical_range_ = fabsf(fabsf(position_.z() - grid_lsd_.mean_(pos_index_.x(), pos_index_.y())) - loiter_height_ ) > 1.f;
       ROS_INFO("[WGN] Landing Radius: xy  %f, z %f ", (goal_.topRows<2>() - position_.topRows<2>()).norm(), fabsf(position_.z() - grid_lsd_.mean_(pos_index_.x(), pos_index_.y())));
-
+      std::cout << fabsf(fabsf(position_.z() - grid_lsd_.mean_(pos_index_.x(), pos_index_.y())) - loiter_height_ ) << std::endl;
       if (is_within_landing_radius_ && !in_land_vertical_range_ && is_land_waypoint_ && !std::isfinite(velocity_setpoint_.z())) {
         prev_lsd_state_ = LSDState::goTo;
         lsd_state_ = LSDState::altitudeChange;
@@ -184,7 +184,7 @@ void WaypointGeneratorNode::calculateWaypoint() {
         yaw_setpoint_ = yaw_;
       }
       goal_.z() = NAN;
-      float direction = fabsf(position_.z() - grid_lsd_.mean_(pos_index_.x(), pos_index_.y())) <= (loiter_height_ - 0.5f) ? 1.f : -1.f;
+      float direction = (fabsf(position_.z() - grid_lsd_.mean_(pos_index_.x(), pos_index_.y())) - loiter_height_) < 0.f ? 1.f : -1.f;
       velocity_setpoint_.z() = direction * 0.7f;
       publishTrajectorySetpoints(goal_, velocity_setpoint_, yaw_setpoint_, yaw_speed_setpoint_);
       ROS_INFO("\033[1;35m [WGN] altitudeChange %f %f %f - %f %f %f \033[0m", goal_.x(), goal_.y(), goal_.z(), velocity_setpoint_.x(), velocity_setpoint_.y(), velocity_setpoint_.z());
