@@ -3,7 +3,7 @@
 
 
 int main(int argc, char **argv) {
-  using namespace landing_site_detection;
+  using namespace avoidance;
   ros::init(argc, argv, "landing_site_detection_node");
   ros::NodeHandle nh("~");
   LandingSiteDetectionNode NodeLSD(nh);

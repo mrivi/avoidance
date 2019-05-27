@@ -4,7 +4,7 @@
 #include <ros/ros.h>
 #include <geometry_msgs/Point.h>
 
-namespace landing_site_detection {
+namespace avoidance {
 
 class LandingSiteDetectionVisualization {
 public:

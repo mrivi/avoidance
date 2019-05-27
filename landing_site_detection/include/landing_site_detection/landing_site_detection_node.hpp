@@ -22,7 +22,7 @@
 #include "landing_site_detection_visualization.hpp"
 
 
-namespace landing_site_detection {
+namespace avoidance {
 
   class LandingSiteDetectionNode {
 

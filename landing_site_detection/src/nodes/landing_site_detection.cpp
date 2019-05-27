@@ -1,7 +1,7 @@
 #include "landing_site_detection/landing_site_detection.hpp"
 #include "avoidance/common.h"
 
-namespace landing_site_detection {
+namespace avoidance {
 
 void LandingSiteDetection::runLandingSiteDetection() {
   if (size_update_) {

@@ -3,7 +3,7 @@
 
 #include <landing_site_detection/LSDGridMsg.h>
 
-namespace landing_site_detection {
+namespace avoidance {
 
 const Eigen::Vector3f nan_setpoint = Eigen::Vector3f(NAN, NAN, NAN);
 
@@ -129,7 +129,7 @@ void LandingSiteDetectionNode::publishSystemStatus() {
 void LandingSiteDetectionNode::publishSerialGrid() {
   static int grid_seq = 0;
   Grid prev_grid = landing_site_detection_->getPreviousGrid();
-  LSDGridMsg grid;
+  landing_site_detection::LSDGridMsg grid;
   grid.header.frame_id = "local_origin";
   grid.header.seq = grid_seq;
   grid.grid_size = prev_grid.grid_size_;

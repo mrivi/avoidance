@@ -5,7 +5,7 @@
 #include <visualization_msgs/Marker.h>
 #include <visualization_msgs/MarkerArray.h>
 
-namespace landing_site_detection {
+namespace avoidance {
 
 void LandingSiteDetectionVisualization::initializePublishers(ros::NodeHandle& nh) {
 

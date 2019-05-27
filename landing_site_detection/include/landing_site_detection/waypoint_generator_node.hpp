@@ -1,7 +1,6 @@
 #pragma once
 #include <ros/ros.h>
 #include <ros/time.h>
-#include <ros/callback_queue.h>
 
 #include <std_msgs/Float64MultiArray.h>
 #include <std_msgs/Int64MultiArray.h>
@@ -21,9 +20,7 @@
 
 #include <Eigen/Dense>
 
-
-
-namespace landing_site_detection {
+namespace avoidance {
 
   const std::vector<Eigen::Vector2f> exploration_pattern = {Eigen::Vector2f(1.f, 0.f), Eigen::Vector2f(1.f, 1.f),
             Eigen::Vector2f(0.f, 1.f), Eigen::Vector2f(-1.f, 1.f), Eigen::Vector2f(-1.f, 0.f), Eigen::Vector2f(-1.f, -1.f),
@@ -51,7 +48,6 @@ namespace landing_site_detection {
     ros::NodeHandle nh_;
 
     ros::Timer cmdloop_timer_;
-    ros::CallbackQueue cmdloop_queue_;
     std::unique_ptr<ros::AsyncSpinner> cmdloop_spinner_;
 
     double spin_dt_ = 0.1;

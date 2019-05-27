@@ -3,7 +3,7 @@
 #include <Eigen/Core>
 #include <Eigen/Dense>
 
-namespace landing_site_detection {
+namespace avoidance {
 
 class Grid {
 public:

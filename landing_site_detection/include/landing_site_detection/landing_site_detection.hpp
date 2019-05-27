@@ -10,7 +10,7 @@
 
 #include "grid.hpp"
 
-namespace landing_site_detection {
+namespace avoidance {
 
 class LandingSiteDetection {
 public:

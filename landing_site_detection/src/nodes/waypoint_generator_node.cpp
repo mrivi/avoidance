@@ -3,7 +3,7 @@
 #include "avoidance/common.h"
 #include "tf/transform_datatypes.h"
 
-namespace landing_site_detection {
+namespace avoidance {
   const Eigen::Vector3f nan_setpoint = Eigen::Vector3f(NAN, NAN, NAN);
 
 
@@ -429,7 +429,7 @@ void WaypointGeneratorNode::goalVisualization() {
 }
 
 int main(int argc, char **argv) {
-  using namespace landing_site_detection;
+  using namespace avoidance;
   ros::init(argc, argv, "waypoint_generator_node");
   ros::NodeHandle nh("~");
 
