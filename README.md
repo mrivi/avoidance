@@ -291,7 +291,7 @@ For MISSIONS, open [QGroundControl](http://qgroundcontrol.com/) and plan a missi
 
 ### Safe Landing Planner
 
-This section shows how to start the *safe_landing_planner* and use it to land safely in mission or auto land mode.
+This section shows how to start the *safe_landing_planner* and use it to land safely in mission or auto land mode. To run the node:
 
 ```bash
 roslaunch landing_site_detection landing_site_detection.launch
@@ -351,7 +351,7 @@ Parameters to set through QGC:
   cmake ..
   make
   ```
-  - Clone the [ROS wrapper](https://github.com/Auterion/struct_core_ros)
+  - Clone the [ROS wrapper](https://github.com/Auterion/struct_core_ros) in the `catkin_ws`
   - Copy the shared object `Libraries/Structure/Linux/x86_64/libStructure.so` from the SDK into `/usr/local/lib/`
   - Copy the headers from `Libraries/Structure/Headers/` in the SDK to the ROS wrapper include directory `~/catkin_ws/src/struct_core_ros/include`
 
@@ -396,7 +396,7 @@ log4j.logger.ros.local_planner=DEBUG
 
 ## Safe Landing Planner
 
-Once the catkin workspace has been built, to run the planner with a Realsense D435 and Occipital Structure Core, you can generate the launch file using the script *generate_launchfile.sh*. The script works the same as described in the section above for the local planner. For example:
+Once the catkin workspace has been built, to run the planner with a Realsense D435 and Occipital Structure Core, you can generate the launch file using the script *generate_launchfile.sh*. The script works the same as described in the section above for the Local Planner. For example:
 
 ```bash
 export CAMERA_CONFIGS="camera_main,struct_core_ros,819612070807,0.3,0.32,-0.11,0,0,0"
