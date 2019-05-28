@@ -65,9 +65,6 @@ for camera in $CAMERA_CONFIGS; do
 			       <arg name="enable_fisheye"        value="false"/>
 			    </include>
 
-			    <!-- switch off and on auto exposure of Realsense cameras, as it does not work on startup -->
-			    <node name="set_RS_param" pkg="safe_landing_planner" type="realsense_params.sh" />
-
 		EOM
 
 		# Append to the realsense auto exposure toggling
@@ -92,11 +89,18 @@ for camera in $CAMERA_CONFIGS; do
 	fi
 done
 
-if [ ! -z $VEHICLE_CONFIG ]; then
+if [ ! -z $VEHICLE_CONFIG_SLP ]; then
 cat >> launch/safe_landing_planner_launch.launch <<- EOM
-    <node name="dynparam" pkg="dynamic_reconfigure" type="dynparam" args="load safe_landing_planner_node $VEHICLE_CONFIG" />
+    <node name="dynparam_slp" pkg="dynamic_reconfigure" type="dynparam" args="load safe_landing_planner_node $VEHICLE_CONFIG_SLP" />
 EOM
-echo "Adding vehicle paramters: $VEHICLE_CONFIG"
+echo "Adding vehicle paramters: $VEHICLE_CONFIG_SLP"
+fi
+
+if [ ! -z $VEHICLE_CONFIG_WPG ]; then
+cat >> launch/safe_landing_planner_launch.launch <<- EOM
+    <node name="dynparam_wpg" pkg="dynamic_reconfigure" type="dynparam" args="load waypoint_generator_node $VEHICLE_CONFIG_WPG" />
+EOM
+echo "Adding vehicle paramters: $VEHICLE_CONFIG_WPG"
 fi
 
 
