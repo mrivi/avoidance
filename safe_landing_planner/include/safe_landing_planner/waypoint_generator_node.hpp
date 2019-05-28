@@ -60,6 +60,7 @@ namespace avoidance {
     float can_land_thr_= 0.4f;
     float loiter_height_ = 4.f;
     float factor_exploration_ = 1.f;
+    float vertical_range_error_ = 1.f;
     bool grid_received_ = false;
     bool is_land_waypoint_ = false;
     bool decision_taken_ = false;

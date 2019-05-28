@@ -54,6 +54,7 @@ void WaypointGeneratorNode::dynamicReconfigureCallback(safe_landing_planner::Way
   can_land_thr_ = static_cast<float>(config.can_land_thr);
   loiter_height_ = static_cast<float>(config.loiter_height);
   smoothing_land_cell_ = config.smoothing_land_cell;
+  vertical_range_error_ = static_cast<float>(config.vertical_range_error);
 
   if (can_land_hysteresis_.size() != ((smoothing_land_cell_ * 2) * (smoothing_land_cell_ * 2))) {
     update_smoothing_size_ = true;
@@ -160,7 +161,7 @@ void WaypointGeneratorNode::calculateWaypoint() {
       ROS_INFO("\033[1;32m [WGN] goTo %f %f %f - %f %f %f \033[0m\n", goal_.x(), goal_.y(), goal_.z(), velocity_setpoint_.x(), velocity_setpoint_.y(), velocity_setpoint_.z());
 
       is_within_landing_radius_ = (goal_.topRows<2>() - position_.topRows<2>()).norm() < landing_radius_;
-      in_land_vertical_range_ = fabsf(fabsf(position_.z() - grid_lsd_.mean_(pos_index_.x(), pos_index_.y())) - loiter_height_ ) > 1.f;
+      in_land_vertical_range_ = fabsf(fabsf(position_.z() - grid_lsd_.mean_(pos_index_.x(), pos_index_.y())) - loiter_height_ ) < vertical_range_error_;
       ROS_INFO("[WGN] Landing Radius: xy  %f, z %f ", (goal_.topRows<2>() - position_.topRows<2>()).norm(), fabsf(position_.z() - grid_lsd_.mean_(pos_index_.x(), pos_index_.y())));
       std::cout << fabsf(fabsf(position_.z() - grid_lsd_.mean_(pos_index_.x(), pos_index_.y())) - loiter_height_ ) << std::endl;
       if (is_within_landing_radius_ && !in_land_vertical_range_ && is_land_waypoint_ && !std::isfinite(velocity_setpoint_.z())) {
