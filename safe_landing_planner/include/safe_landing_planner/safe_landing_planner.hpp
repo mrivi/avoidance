@@ -63,7 +63,6 @@ protected:
   float cell_size_ = 1.f;
   float mean_diff_thr_ = 0.3f;
   float alpha_ = 0.8f;
-  int min_n_land_cells_ = 9;
   int n_lines_padding_ = 1;
   int max_n_mean_diff_cells_ = 2;
   int grid_seq_ = 0;

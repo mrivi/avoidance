@@ -38,7 +38,6 @@ TEST_F(SafeLandingPlannerTests, flat_center) {
   safe_landing_planner::SafeLandingPlannerNodeConfig config = safe_landing_planner::SafeLandingPlannerNodeConfig::__getDefault__();
 
   config.smoothing_size = -1;
-  config.min_n_land_cells = 0;
   config.n_points_threshold = 20;
   config.cell_size = 1;
 
@@ -118,7 +117,6 @@ TEST_F(SafeLandingPlannerTests, flat_bottom_half) {
   safe_landing_planner::SafeLandingPlannerNodeConfig config = safe_landing_planner::SafeLandingPlannerNodeConfig::__getDefault__();
 
   config.smoothing_size = -2;
-  config.min_n_land_cells = 0;
   config.n_points_threshold = 4;
   config.cell_size = 1;
 
@@ -270,7 +268,6 @@ TEST_F(SafeLandingPlannerTests, smoothing) {
   safe_landing_planner::SafeLandingPlannerNodeConfig config = safe_landing_planner::SafeLandingPlannerNodeConfig::__getDefault__();
 
   config.smoothing_size = 2;
-  config.min_n_land_cells = 2;
   config.n_points_threshold = 0;
   config.cell_size = 1;
 
@@ -321,7 +318,6 @@ TEST_F(SafeLandingPlannerTests, mean) {
   safe_landing_planner::SafeLandingPlannerNodeConfig config = safe_landing_planner::SafeLandingPlannerNodeConfig::__getDefault__();
 
   config.smoothing_size = 1;
-  config.min_n_land_cells = 0;
   config.n_points_threshold = 1;
   config.cell_size = 1;
   config.max_n_mean_diff_cells = 1;
