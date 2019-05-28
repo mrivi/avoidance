@@ -3,7 +3,7 @@
 #include "../include/safe_landing_planner/grid.hpp"
 
 
-using namespace landing_site_detection;
+using namespace avoidance;
 
 
 TEST(GridTest, gridCellSize) {

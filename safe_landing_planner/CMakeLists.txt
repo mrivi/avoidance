@@ -132,22 +132,21 @@ target_link_libraries(waypoint_generator_node
 if(CATKIN_ENABLE_TESTING)
     # Add gtest based cpp test target and link libraries
     catkin_add_gtest(${PROJECT_NAME}-test test/main.cpp
-                                          test/test_landing_site_detection.cpp
+                                          test/test_safe_landing_planner.cpp
+                                          test/test_grid.cpp
                                         )
 
-  #catkin_add_gtest(${PROJECT_NAME}-test-roscore test/main.cpp
-  #                                      test/test_landing_site_detection_node.cpp)
     if(TARGET ${PROJECT_NAME}-test)
       target_link_libraries(${PROJECT_NAME}-test ${PROJECT_NAME}
                                                  ${catkin_LIBRARIES}
                                                  )
     endif()
 
-  if(TARGET ${PROJECT_NAME}-test-roscore)
-      target_link_libraries(${PROJECT_NAME}-test-roscore ${PROJECT_NAME}
-                                                 ${catkin_LIBRARIES}
-                                                 )
-    endif()
+  #if(TARGET ${PROJECT_NAME}-test-roscore)
+  #    target_link_libraries(${PROJECT_NAME}-test-roscore ${PROJECT_NAME}
+  #                                               ${catkin_LIBRARIES}
+  #                                               )
+  #  endif()
 
     ## Add folders to be run by python nosetests
     # catkin_add_nosetests(test)
