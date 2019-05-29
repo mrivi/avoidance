@@ -326,7 +326,16 @@ void WaypointGeneratorNode::publishTrajectorySetpoints(const Eigen::Vector3f &po
 
   setpoint.time_horizon = {NAN, NAN, NAN, NAN, NAN};
 
-  setpoint.point_valid = {true, false, false, false, false};
+  bool pos_sp_xy_valid = std::isfinite(pos_sp.x()) && std::isfinite(pos_sp.y());
+  bool vel_sp_xy_valid = std::isfinite(vel_sp.x()) && std::isfinite(vel_sp.y());
+  if ((pos_sp_xy_valid || vel_sp_xy_valid) && (std::isfinite(pos_sp.z()) || std::isfinite(vel_sp.z()))) {
+    setpoint.point_valid = {true, false, false, false, false};
+  } else {
+    setpoint.point_valid = {false, false, false, false, false};
+  }
+
+
+
   trajectory_pub_.publish(setpoint);
 }
 
