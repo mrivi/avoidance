@@ -192,10 +192,8 @@ void WaypointGeneratorNode::calculateWaypoint() {
 
       if (explorarion_is_active_) { landing_radius_ = 0.5f; }
       is_within_landing_radius_ = (goal_.topRows<2>() - position_.topRows<2>()).norm() < landing_radius_;
-      in_land_vertical_range_ = fabsf(position_.z() - grid_lsd_.mean_(pos_index_.x(), pos_index_.y())) < loiter_height_ &&
-        fabsf(position_.z() - grid_lsd_.mean_(pos_index_.x(), pos_index_.y())) > (loiter_height_ - 0.5f);
+      in_land_vertical_range_ = fabsf(fabsf(position_.z() - grid_lsd_.mean_(pos_index_.x(), pos_index_.y())) - loiter_height_ ) < vertical_range_error_;
       ROS_INFO("[WGN] Landing Radius: xy  %f, z %f ", (goal_.topRows<2>() - position_.topRows<2>()).norm(), fabsf(position_.z() - grid_lsd_.mean_(pos_index_.x(), pos_index_.y())));
-
 
       if (is_within_landing_radius_ && in_land_vertical_range_ && is_land_waypoint_) {
         start_seq_landing_decision_ = grid_lsd_seq_;
