@@ -93,8 +93,10 @@ include_directories(
 set(SAFE_LANDING_PLANNER_CPP_FILES     "src/nodes/safe_landing_planner_node.cpp"
                                        "src/nodes/safe_landing_planner.cpp"
                                        "src/nodes/waypoint_generator.cpp"
-                                       "src/nodes/waypoint_generator_node.cpp"
+                        #               "src/nodes/waypoint_generator_node.cpp"
                                        "src/nodes/safe_landing_planner_visualization.cpp"
+                                       "src/nodes/safe_landing_planner_visualization_node.cpp"
+
 )
 
 add_library(safe_landing_planner     "${SAFE_LANDING_PLANNER_CPP_FILES}")
@@ -107,7 +109,9 @@ add_dependencies(safe_landing_planner ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catk
 ## Declare a C++ executable
 # add_executable(avoidance_node src/avoidance_node.cpp)
 add_executable(safe_landing_planner_node src/nodes/safe_landing_planner_node_main.cpp)
-add_executable(waypoint_generator_node src/nodes/waypoint_generator_node.cpp)
+#add_executable(waypoint_generator_node src/nodes/waypoint_generator_node.cpp)
+add_executable(safe_landing_planner_visualization_node src/nodes/safe_landing_planner_visualization_node.cpp)
+
 
 
 ## Add cmake target dependencies of the executable
@@ -122,8 +126,10 @@ add_executable(waypoint_generator_node src/nodes/waypoint_generator_node.cpp)
 target_link_libraries(safe_landing_planner_node
   safe_landing_planner
   ${catkin_LIBRARIES} )
-target_link_libraries(waypoint_generator_node
-    safe_landing_planner
+#target_link_libraries(waypoint_generator_node
+#    safe_landing_planner
+#    ${catkin_LIBRARIES} )
+target_link_libraries(safe_landing_planner_visualization_node
     ${catkin_LIBRARIES} )
 
   #############
