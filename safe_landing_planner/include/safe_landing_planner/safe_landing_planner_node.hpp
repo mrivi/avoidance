@@ -24,6 +24,7 @@
 #include "safe_landing_planner.hpp"
 #include "safe_landing_planner_visualization.hpp"
 
+
 namespace avoidance {
 
 class SafeLandingPlannerNode {
@@ -69,6 +70,7 @@ class SafeLandingPlannerNode {
 
   ros::Subscriber pose_sub_;
   ros::Subscriber pointcloud_sub_;
+  ros::Subscriber raw_grid_sub_;
 
   tf::TransformListener tf_listener_;
 
@@ -89,7 +91,7 @@ class SafeLandingPlannerNode {
   dynamic_reconfigure::Server<
       safe_landing_planner::SafeLandingPlannerNodeConfig>
       server_;
-
+  void rawGridCallback(const safe_landing_planner::SLPGridMsg &msg);
   /**
   * @brief main loop callback
   * @param[in] event, event timing information

@@ -4,16 +4,39 @@
 namespace avoidance {
 
 void SafeLandingPlanner::runSafeLandingPlanner() {
+  std::cout << "runSafeLandingPlanner \n";
   if (size_update_) {
     grid_.resize(grid_size_, cell_size_);
     previous_grid_.resize(grid_size_, cell_size_);
     n_lines_padding_ = smoothing_size_;
     size_update_ = false;
   }
-  processPointcloud();
+  // processPointcloud();
+  processRawGrid();
   // low pass filter on grid mean and variance
   grid_.combine(previous_grid_, alpha_);
   isLandingPossible();
+}
+
+void SafeLandingPlanner::processRawGrid() {
+  grid_seq_ = raw_grid_.header.seq;
+  std::swap(previous_grid_, grid_);
+  grid_.setFilterLimits(position_);
+  grid_.reset();
+
+  if (grid_.getGridSize() != raw_grid_.grid_size ||
+      grid_.getCellSize() != raw_grid_.cell_size) {
+    grid_.resize(raw_grid_.grid_size, raw_grid_.cell_size);
+  }
+
+  for (int i = 0; i < raw_grid_.mean.layout.dim[0].size; i++) {
+    for (int j = 0; j < raw_grid_.mean.layout.dim[1].size; j++) {
+      grid_.mean_(i, j) =
+          raw_grid_.mean.data[raw_grid_.mean.layout.dim[1].size * i + j];
+      grid_.variance_(i, j) =
+          raw_grid_.std_dev.data[raw_grid_.std_dev.layout.dim[1].size * i + j];
+    }
+  }
 }
 
 void SafeLandingPlanner::processPointcloud() {

@@ -28,8 +28,10 @@ SafeLandingPlannerNode::SafeLandingPlannerNode(const ros::NodeHandle &nh)
   pose_sub_ = nh_.subscribe<const geometry_msgs::PoseStamped &>(
       "/mavros/local_position/pose", 1,
       &SafeLandingPlannerNode::positionCallback, this);
-  pointcloud_sub_ = nh_.subscribe<const sensor_msgs::PointCloud2 &>(
-      camera_topic, 1, &SafeLandingPlannerNode::pointCloudCallback, this);
+  // pointcloud_sub_ = nh_.subscribe<const sensor_msgs::PointCloud2 &>(
+  //     camera_topic, 1, &SafeLandingPlannerNode::pointCloudCallback, this);
+  raw_grid_sub_ = nh_.subscribe<const safe_landing_planner::SLPGridMsg &>(
+      "/raw_grid_slp", 1, &SafeLandingPlannerNode::rawGridCallback, this);
 
   mavros_system_status_pub_ =
       nh_.advertise<mavros_msgs::CompanionProcessStatus>(
@@ -37,6 +39,14 @@ SafeLandingPlannerNode::SafeLandingPlannerNode(const ros::NodeHandle &nh)
   grid_pub_ = nh_.advertise<safe_landing_planner::SLPGridMsg>("/grid_slp", 1);
 
   start_time_ = ros::Time::now();
+}
+
+void SafeLandingPlannerNode::rawGridCallback(const safe_landing_planner::SLPGridMsg &msg) {
+  std::lock_guard<std::mutex> transformed_cloud_guard(
+      *(transformed_cloud_mutex_));
+  safe_landing_planner_->raw_grid_ = std::move(msg);
+  cloud_transformed_ = true;
+  std::cout << "rawGridCallback \n";
 }
 
 void SafeLandingPlannerNode::dynamicReconfigureCallback(

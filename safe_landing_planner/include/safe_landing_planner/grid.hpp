@@ -75,11 +75,12 @@ class Grid {
 
   Eigen::MatrixXi land_;
   Eigen::MatrixXf mean_;
+  Eigen::MatrixXf variance_;
+
 
  private:
   Eigen::Vector2f corner_min_;
   Eigen::Vector2f corner_max_;
-  Eigen::MatrixXf variance_;
   Eigen::MatrixXi counter_;
 
   float grid_size_;

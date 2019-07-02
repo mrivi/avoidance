@@ -7,6 +7,7 @@
 
 #include <dynamic_reconfigure/server.h>
 #include <safe_landing_planner/SafeLandingPlannerNodeConfig.h>
+#include <safe_landing_planner/SLPGridMsg.h>
 
 #include "grid.hpp"
 
@@ -53,6 +54,8 @@ class SafeLandingPlanner {
   Grid getPreviousGrid() const { return previous_grid_; };
   Grid getGrid() const { return grid_; };
   int getSmoothingSize() const { return smoothing_size_; };
+  safe_landing_planner::SLPGridMsg raw_grid_;
+
 
  protected:
   Eigen::Vector3f position_ = Eigen::Vector3f::Zero();
@@ -74,7 +77,7 @@ class SafeLandingPlanner {
   safe_landing_planner::SafeLandingPlannerNodeConfig rqt_param_config_;
   Grid grid_ = Grid(10.f, 1.f);
   Grid previous_grid_ = Grid(10.f, 1.f);
-
+  void processRawGrid();
   /**
   * @brief process the pointcloud and calculate mean and variance for points in
   *the grid
