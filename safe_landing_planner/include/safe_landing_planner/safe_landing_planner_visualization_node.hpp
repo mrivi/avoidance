@@ -36,6 +36,7 @@ private:
   ros::Subscriber grid_sub_;
   ros::Publisher mean_pub_;
   ros::Publisher std_dev_pub_;
+  ros::Publisher counter_pub_;
   void gridCallback(const safe_landing_planner::SLPGridMsg& msg);
   void cmdLoopCallback(const ros::TimerEvent& event);
   void positionCallback(
@@ -47,6 +48,7 @@ private:
 
   void publishMean(const Grid& grid);
   void publishStandardDeviation(const Grid& grid);
+  void publishCounter(const Grid& grid);
   std::tuple<float, float, float> HSVtoRGB(std::tuple<float, float, float> hsv);
 
 

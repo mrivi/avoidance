@@ -3,6 +3,7 @@
 
     <node name="safe_landing_planner_visualization_node" pkg="safe_landing_planner" type="safe_landing_planner_visualization_node" output="screen" >
     </node>
+    <node name="rviz" pkg="rviz" type="rviz" output="screen" args="-d ~/.rviz/lsd.rviz" />
 
 
 </launch>
