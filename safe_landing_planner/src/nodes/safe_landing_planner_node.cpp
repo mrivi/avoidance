@@ -46,7 +46,6 @@ void SafeLandingPlannerNode::rawGridCallback(const safe_landing_planner::SLPGrid
       *(transformed_cloud_mutex_));
   safe_landing_planner_->raw_grid_ = std::move(msg);
   cloud_transformed_ = true;
-  std::cout << "rawGridCallback \n";
 }
 
 void SafeLandingPlannerNode::dynamicReconfigureCallback(

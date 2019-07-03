@@ -4,7 +4,6 @@
 namespace avoidance {
 
 void SafeLandingPlanner::runSafeLandingPlanner() {
-  std::cout << "runSafeLandingPlanner \n";
   if (size_update_) {
     grid_.resize(grid_size_, cell_size_);
     previous_grid_.resize(grid_size_, cell_size_);
@@ -35,6 +34,8 @@ void SafeLandingPlanner::processRawGrid() {
           raw_grid_.mean.data[raw_grid_.mean.layout.dim[1].size * i + j];
       grid_.variance_(i, j) =
           raw_grid_.std_dev.data[raw_grid_.std_dev.layout.dim[1].size * i + j];
+      grid_.counter_(i, j) =
+          raw_grid_.counter.data[raw_grid_.counter.layout.dim[1].size * i + j];
     }
   }
 }
