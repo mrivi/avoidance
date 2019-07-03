@@ -161,7 +161,7 @@ void SafeLandingPlannerVisualization::publishStandardDeviation(
       cell.pose.position.z = 0.0;
 
       float h = ((range_max - range_min) *
-                 (sqrtf(variance(i, j)) - variance_min_value) /
+                 ((variance(i, j)) - variance_min_value) /
                  (variance_max_value - variance_min_value)) +
                 range_min;
 

@@ -5,6 +5,7 @@ namespace avoidance {
 
 void SafeLandingPlanner::runSafeLandingPlanner() {
   if (size_update_) {
+    std::cout << "size update \n";
     grid_.resize(grid_size_, cell_size_);
     previous_grid_.resize(grid_size_, cell_size_);
     n_lines_padding_ = smoothing_size_;
@@ -20,8 +21,9 @@ void SafeLandingPlanner::runSafeLandingPlanner() {
 void SafeLandingPlanner::processRawGrid() {
   grid_seq_ = raw_grid_.header.seq;
   std::swap(previous_grid_, grid_);
-  grid_.setFilterLimits(position_);
   grid_.reset();
+  grid_.setFilterLimits(position_);
+
 
   if (grid_.getGridSize() != raw_grid_.grid_size ||
       grid_.getCellSize() != raw_grid_.cell_size) {
@@ -38,6 +40,8 @@ void SafeLandingPlanner::processRawGrid() {
           raw_grid_.counter.data[raw_grid_.counter.layout.dim[1].size * i + j];
     }
   }
+
+
 }
 
 void SafeLandingPlanner::processPointcloud() {
@@ -79,13 +83,14 @@ void SafeLandingPlanner::isLandingPossible() {
     for (int j = 0; j < size; j++) {
       Eigen::Vector2i idx(i, j);
       if (grid_.getCounter(idx) < n_points_thr_ ||
-          sqrtf(grid_.getVariance(idx)) > std_dev_thr_) {
+          (grid_.getVariance(idx)) > std_dev_thr_) {
         grid_.land_(i, j) = 0;
       } else {
         grid_.land_(i, j) = 1;
       }
     }
   }
+
 
   // if grid smoothing enabled
   if (n_lines_padding_ > 0) {
@@ -148,6 +153,7 @@ void SafeLandingPlanner::isLandingPossible() {
                                grid_.land_.rows(), grid_.land_.cols());
   }
   pos_index_ = computeGridIndexes(position_.x(), position_.y());
+
 }
 
 void SafeLandingPlanner::setPose(const Eigen::Vector3f& pos,

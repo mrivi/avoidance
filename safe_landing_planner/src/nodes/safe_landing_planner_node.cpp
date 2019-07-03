@@ -218,7 +218,7 @@ void SafeLandingPlannerNode::publishSerialGrid() {
     for (size_t j = 0; j < prev_grid.getRowColSize(); j++) {
       grid.mean.data.push_back(prev_grid.mean_(i, j));
       grid.land.data.push_back(prev_grid.land_(i, j));
-      grid.std_dev.data.push_back(sqrtf(variance(i, j)));
+      grid.std_dev.data.push_back((variance(i, j)));
       grid.counter.data.push_back(counter(i, j));
     }
   }
