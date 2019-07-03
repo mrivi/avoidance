@@ -96,19 +96,19 @@ Visualization Manager:
       Unreliable: false
       Value: true
     - Class: rviz/MarkerArray
-      Enabled: true
+      Enabled: false
       Marker Topic: /grid
       Name: Grid
       Namespaces:
-        "": true
+        {}
       Queue Size: 100
-      Value: true
+      Value: false
     - Class: rviz/Marker
       Enabled: true
       Marker Topic: /goal_position
       Name: Goal
       Namespaces:
-        {}
+        "": true
       Queue Size: 100
       Value: true
     - Class: rviz/Marker
@@ -120,13 +120,13 @@ Visualization Manager:
       Queue Size: 100
       Value: true
     - Class: rviz/MarkerArray
-      Enabled: false
+      Enabled: true
       Marker Topic: /grid_mean
       Name: Mean
       Namespaces:
-        {}
+        "": true
       Queue Size: 100
-      Value: false
+      Value: true
     - Class: rviz/MarkerArray
       Enabled: false
       Marker Topic: /grid_std_dev
@@ -136,13 +136,13 @@ Visualization Manager:
       Queue Size: 100
       Value: false
     - Class: rviz/MarkerArray
-      Enabled: true
+      Enabled: false
       Marker Topic: /land_hysteresis
       Name: Hysteresis
       Namespaces:
-        "": true
+        {}
       Queue Size: 100
-      Value: true
+      Value: false
     - Class: rviz/Marker
       Enabled: true
       Marker Topic: /drone
@@ -186,26 +186,26 @@ Visualization Manager:
   Value: true
   Views:
     Current:
-      Class: rviz/ThirdPersonFollower
-      Distance: 29.278894424438477
+      Class: rviz/XYOrbit
+      Distance: 0.009999999776482582
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
         Swap Stereo Eyes: false
         Value: false
       Focal Point:
-        X: -0.2436000406742096
-        Y: 1.6700820922851562
-        Z: 0
+        X: -26.8486270904541
+        Y: -4.019941329956055
+        Z: 3.5762786865234375e-7
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.8197966814041138
+      Pitch: 0.11000850796699524
       Target Frame: fcu
-      Value: ThirdPersonFollower (rviz)
-      Yaw: 3.0674712657928467
+      Value: XYOrbit (rviz)
+      Yaw: 3.1871755123138428
     Saved: ~
 Window Geometry:
   Displays:

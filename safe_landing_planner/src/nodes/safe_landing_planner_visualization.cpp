@@ -52,12 +52,15 @@ void SafeLandingPlannerVisualization::publishMean(const Grid& grid) {
   Eigen::Vector2f grid_min, grid_max;
   grid.getGridLimits(grid_min, grid_max);
 
-  float variance_max_value = 10.0f;
-  float variance_min_value = -1.0f;
+
+  Eigen::MatrixXf mean = grid.getMean();
+  Eigen::MatrixXf variance = grid.getVariance();
+
+  float variance_max_value = 0.2f;
+  float variance_min_value = 0.0f;
   float range_max = 360.f;
   float range_min = 0.f;
 
-  Eigen::MatrixXf mean = grid.getMean();
 
   for (size_t i = 0; i < grid.getRowColSize(); i++) {
     for (size_t j = 0; j < grid.getRowColSize(); j++) {
@@ -65,13 +68,18 @@ void SafeLandingPlannerVisualization::publishMean(const Grid& grid) {
       cell.pose.position.y = (j * cell_size) + grid_min.y() + (cell_size / 2.f);
       cell.pose.position.z = mean(i, j);
 
-      // float h = ((range_max - range_min) * (mean(i, j) - variance_min_value) /
-      //            (variance_max_value - variance_min_value)) +
-      //           range_min;
-      // float red, green, blue;
-      // float max_aa = 1.f;
-      // std::tie(cell.color.r, cell.color.g, cell.color.b) =
-      //     HSVtoRGB(std::make_tuple(h, 1.f, 1.f));
+      float h = ((range_max - range_min) *
+                 ((variance(i, j)) - variance_min_value) /
+                 (variance_max_value - variance_min_value)) +
+                range_min;
+
+      std::tie(cell.color.r, cell.color.g, cell.color.b) =
+          HSVtoRGB(std::make_tuple(h, 1.f, 1.f));
+      if (variance(i, j) > variance_max_value) {
+        cell.color.r = 0.0;
+        cell.color.g = 0.0;
+        cell.color.b = 0.0;
+      }
 
       marker_array.markers.push_back(cell);
       cell.id += 1;
