@@ -6,6 +6,7 @@ Panels:
       Expanded:
         - /Global Options1
         - /Status1
+        - /Image1
       Splitter Ratio: 0.5
     Tree Height: 485
   - Class: rviz/Selection
@@ -26,7 +27,7 @@ Panels:
     Experimental: false
     Name: Time
     SyncMode: 0
-    SyncSource: Lacal Pointcloud
+    SyncSource: Image
 Preferences:
   PromptSaveOnExit: true
 Toolbars:
@@ -84,7 +85,7 @@ Visualization Manager:
       Value: false
     - Class: rviz/Image
       Enabled: true
-      Image Topic: /camera/rgb/image_raw
+      Image Topic: /camera_main/depth/image_rect_raw_drop
       Max Value: 1
       Median window: 5
       Min Value: 0
@@ -147,7 +148,7 @@ Visualization Manager:
       Marker Topic: /drone
       Name: UAV
       Namespaces:
-        "": true
+        {}
       Queue Size: 100
       Value: true
     - Class: rviz/MarkerArray
@@ -155,7 +156,7 @@ Visualization Manager:
       Marker Topic: /world
       Name: World
       Namespaces:
-        "": true
+        {}
       Queue Size: 100
       Value: true
   Enabled: true
@@ -186,7 +187,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/ThirdPersonFollower
-      Distance: 18.607267379760742
+      Distance: 29.278894424438477
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
@@ -201,10 +202,10 @@ Visualization Manager:
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.1297965943813324
+      Pitch: 0.8197966814041138
       Target Frame: fcu
       Value: ThirdPersonFollower (rviz)
-      Yaw: 3.1924734115600586
+      Yaw: 3.0674712657928467
     Saved: ~
 Window Geometry:
   Displays:
@@ -225,4 +226,4 @@ Window Geometry:
     collapsed: false
   Width: 1853
   X: 67
-  Y: 423
+  Y: 27
