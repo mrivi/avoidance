@@ -45,7 +45,7 @@ void LocalPlanner::dynamicReconfigureSetParams(avoidance::LocalPlannerNodeConfig
   if (getGoal().z() != config.goal_z_param) {
     auto goal = getGoal();
     goal.z() = config.goal_z_param;
-    setGoal(goal);
+    setGoal(goal, desired_vel_, is_land_waypoint_, is_takeoff_waypoint_);
   }
 
   use_vel_setpoints_ = config.use_vel_setpoints_;
@@ -56,10 +56,36 @@ void LocalPlanner::dynamicReconfigureSetParams(avoidance::LocalPlannerNodeConfig
   ROS_DEBUG("\033[0;35m[OA] Dynamic reconfigure call \033[0m");
 }
 
-void LocalPlanner::setGoal(const Eigen::Vector3f& goal) {
+void LocalPlanner::setGoal(const Eigen::Vector3f& goal, const Eigen::Vector3f& vel,
+const bool is_land_waypoint, const bool is_takeoff_waypoint) {
   goal_ = goal;
-  ROS_INFO("===== Set Goal ======: [%f, %f, %f].", goal_.x(), goal_.y(), goal_.z());
+  desired_vel_ = vel;
+  is_land_waypoint_ = is_land_waypoint;
+  is_takeoff_waypoint_ = is_takeoff_waypoint;
+
+  // if (nav_state_ == NavigationState::auto_rtl) {
+    if (goal_.z() > position_.z()) {
+      rtl_climb_ = true;
+      rtl_descend_ = false;
+    } else {
+      rtl_descend_ = true;
+      rtl_climb_ = false;
+    }
+
+
+  // } else {
+  //   rtl_descend_ = false;
+  //   rtl_climb_ = false;
+  // }
+  printf("===== Set Goal ======: [%f, %f, %f] [%f - %f - %f ].\n", goal_.x(), goal_.y(), goal_.z(), desired_vel_.x(),
+  desired_vel_.y(), desired_vel_.z());
+  printf("is_land_waypoint_ %d is_takeoff_waypoint_ %d rtl_climb_ %d rtl_descend_ %d\n", is_land_waypoint_, is_takeoff_waypoint_,
+  rtl_climb_, rtl_descend_);
   applyGoal();
+}
+
+void LocalPlanner::setNavigationState(const NavigationState &nav_state) {
+  nav_state_ = nav_state;
 }
 
 void LocalPlanner::setFOV(int i, const FOV& fov) {
@@ -134,15 +160,35 @@ void LocalPlanner::determineStrategy() {
     reach_altitude_ = true;
   }
 
-  if (!reach_altitude_) {
-    starting_height_ = std::max(goal_.z() - 0.5f, take_off_pose_.z() + 1.0f);
+  const bool offboard_goal_altitude_not_reached = nav_state_ == NavigationState::offboard && !reach_altitude_;
+  const bool auto_takeoff =  nav_state_ == NavigationState::auto_takeoff || (nav_state_ == NavigationState::mission
+    && is_takeoff_waypoint_) || (nav_state_ == NavigationState::auto_rtl && rtl_climb_);
+  const bool auto_land = nav_state_ == NavigationState::auto_land || (nav_state_ == NavigationState::mission
+    && is_land_waypoint_) || (nav_state_ == NavigationState::auto_rtl && rtl_descend_);
+
+  printf("need_to_change_altitude %d %d %d \n", offboard_goal_altitude_not_reached, auto_takeoff,auto_land );
+  const bool need_to_change_altitude = offboard_goal_altitude_not_reached || auto_takeoff || auto_land;
+  if (need_to_change_altitude) {
+
+    if (nav_state_ == NavigationState::offboard) {
+      starting_height_ = std::max(goal_.z() - 0.5f, take_off_pose_.z() + 1.0f);
+      if (position_.z() > starting_height_) {
+        reach_altitude_ = true;
+        waypoint_type_ = direct;
+      }
+    } else if (auto_takeoff) {
+      starting_height_ = std::max(goal_.z() - 0.5f, 2.0f);
+    } else if (auto_land) {
+      starting_height_ = NAN;
+    }
+
+    if (nav_state_ == NavigationState::auto_rtl && (position_.z() > goal_.z() - 0.8f)) {
+      rtl_descend_ = false;
+      rtl_climb_ = false;
+    }
+
     ROS_INFO("\033[1;35m[OA] Reach height (%f) first: Go fast\n \033[0m", starting_height_);
     waypoint_type_ = reachHeight;
-
-    if (position_.z() > starting_height_) {
-      reach_altitude_ = true;
-      waypoint_type_ = direct;
-    }
 
     if (px4_.param_mpc_col_prev_d > 0.f) {
       create2DObstacleRepresentation(true);
@@ -303,6 +349,9 @@ avoidanceOutput LocalPlanner::getAvoidanceOutput() const {
   out.last_path_time = last_path_time_;
 
   out.take_off_pose = take_off_pose_;
+  out.reach_height_z_vel = desired_vel_.z();
+  out.land_waypoint = nav_state_ == NavigationState::auto_land || (nav_state_ == NavigationState::mission
+    && is_land_waypoint_) || (nav_state_ == NavigationState::auto_rtl && rtl_descend_);
 
   out.path_node_positions = star_planner_->path_node_positions_;
   return out;

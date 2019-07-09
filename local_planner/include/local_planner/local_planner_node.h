@@ -225,9 +225,14 @@ class LocalPlannerNode {
   geometry_msgs::PoseStamped goal_msg_;
   geometry_msgs::TwistStamped vel_msg_;
   geometry_msgs::PoseStamped prev_goal_;
+  geometry_msgs::TwistStamped desired_vel_msg_;
   mavros_msgs::Altitude ground_distance_msg_;
 
+
+  Eigen::Vector3f goal_mission_item_msg_ = Eigen::Vector3f::Zero();
   bool new_goal_ = false;
+  bool is_land_waypoint_ = false;
+  bool is_takeoff_waypoint_ = false;
 
   NavigationState nav_state_ = NavigationState::none;
   MAV_STATE companion_state_ = MAV_STATE::MAV_STATE_STANDBY;

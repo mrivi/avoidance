@@ -144,7 +144,7 @@ void WaypointGenerator::reachGoalAltitudeFirst() {
   // location
   output_.goto_position = position_;
   goal_.x() = position_.x();  // Needed so adaptSpeed can clamp to goal
-  goal_.y() = position_.y();
+  // goal_.y() = position_.y();
 
   // Only move the setpoint if drone is in the air
   if (is_airborne_) {
@@ -275,10 +275,19 @@ void WaypointGenerator::getPathMsg() {
   adaptSpeed();
   smoothWaypoint(dt);
 
+  if (planner_info_.waypoint_type == reachHeight) {
+    if (planner_info_.land_waypoint) {
+      output_.smoothed_goto_position.z() = NAN;
+    }
+    output_.linear_velocity_wp.z() = planner_info_.reach_height_z_vel;
+  } else {
+    output_.linear_velocity_wp = Eigen::Vector3f(NAN, NAN, NAN);
+  }
+
   ROS_DEBUG("[WG] Final waypoint: [%f %f %f].", output_.smoothed_goto_position.x(), output_.smoothed_goto_position.y(),
             output_.smoothed_goto_position.z());
   createPoseMsg(output_.position_wp, output_.orientation_wp, output_.smoothed_goto_position, setpoint_yaw_rad_);
-  transformPositionToVelocityWaypoint();
+  // transformPositionToVelocityWaypoint();
 }
 
 waypointResult WaypointGenerator::getWaypoints() {

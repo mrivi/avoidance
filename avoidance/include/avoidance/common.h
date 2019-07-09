@@ -266,7 +266,7 @@ geometry_msgs::PoseStamped toPoseStamped(const Eigen::Vector3f& p, const Eigen::
 * @params[out] obst_avoid, position setpoint in MavROS message form
 * @params[in] pose, position setpoint computed by the planner
 **/
-void transformPoseToTrajectory(mavros_msgs::Trajectory& obst_avoid, geometry_msgs::PoseStamped pose);
+void transformPoseToTrajectory(mavros_msgs::Trajectory& obst_avoid, geometry_msgs::PoseStamped pose, geometry_msgs::Twist vel);
 /**
 * @brief      transforms velocity setpoints from ROS message to MavROS
 *             message

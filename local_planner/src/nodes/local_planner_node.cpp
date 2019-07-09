@@ -183,9 +183,11 @@ void LocalPlannerNode::updatePlannerInfo() {
 
   // update goal
   if (new_goal_) {
-    local_planner_->setGoal(toEigen(goal_msg_.pose.position));
+    local_planner_->setGoal(toEigen(goal_msg_.pose.position), toEigen(desired_vel_msg_.twist.linear), is_land_waypoint_, is_takeoff_waypoint_);
     new_goal_ = false;
   }
+
+  local_planner_->setNavigationState(nav_state_);
 
   // update ground distance
   if (ros::Time::now() - ground_distance_msg_.header.stamp < ros::Duration(0.5)) {
@@ -217,6 +219,7 @@ void LocalPlannerNode::stateCallback(const mavros_msgs::State& msg) {
   } else if (msg.mode == "AUTO.LAND") {
     nav_state_ = NavigationState::auto_land;
   } else if (msg.mode == "AUTO.RTL") {
+    std::cout << "!!!!!!!!!!!!!!!!!!!!!!!!!! auto rtl \n";
     nav_state_ = NavigationState::auto_rtl;
   } else if (msg.mode == "AUTO.RTGS") {
     nav_state_ = NavigationState::auto_rtgs;
@@ -309,13 +312,14 @@ void LocalPlannerNode::calculateWaypoints(bool hover) {
 
   // send waypoints to mavros
   mavros_msgs::Trajectory obst_free_path = {};
-  if (local_planner_->use_vel_setpoints_) {
-    mavros_vel_setpoint_pub_.publish(toTwist(result.linear_velocity_wp, result.angular_velocity_wp));
-    transformVelocityToTrajectory(obst_free_path, toTwist(result.linear_velocity_wp, result.angular_velocity_wp));
-  } else {
-    mavros_pos_setpoint_pub_.publish(toPoseStamped(result.position_wp, result.orientation_wp));
-    transformPoseToTrajectory(obst_free_path, toPoseStamped(result.position_wp, result.orientation_wp));
-  }
+  // if (local_planner_->use_vel_setpoints_) {
+    // mavros_vel_setpoint_pub_.publish(toTwist(result.linear_velocity_wp, result.angular_velocity_wp));
+    // transformVelocityToTrajectory(obst_free_path, toTwist(result.linear_velocity_wp, result.angular_velocity_wp));
+  // } else {
+    // mavros_pos_setpoint_pub_.publish(toPoseStamped(result.position_wp, result.orientation_wp));
+    transformPoseToTrajectory(obst_free_path, toPoseStamped(result.position_wp, result.orientation_wp),
+    toTwist(result.linear_velocity_wp, result.angular_velocity_wp));
+  // }
   mavros_obstacle_free_path_pub_.publish(obst_free_path);
 }
 
@@ -350,11 +354,19 @@ void LocalPlannerNode::updateGoalCallback(const visualization_msgs::MarkerArray&
 }
 
 void LocalPlannerNode::fcuInputGoalCallback(const mavros_msgs::Trajectory& msg) {
-  if ((msg.point_valid[1] == true) &&
-      (toEigen(goal_msg_.pose.position) - toEigen(msg.point_2.position)).norm() > 0.01f) {
+  bool update = ((avoidance::toEigen(msg.point_2.position) - goal_mission_item_msg_).norm() > 0.01) ||
+                !std::isfinite(goal_msg_.pose.position.x) || !std::isfinite(goal_msg_.pose.position.y);
+  std::cout << "command " << msg.command[1] << std::endl;
+  if ((msg.point_valid[0] == true) && update) {
     new_goal_ = true;
     prev_goal_ = goal_msg_;
-    goal_msg_.pose.position = msg.point_2.position;
+    goal_msg_.pose.position = msg.point_1.position;
+    desired_vel_msg_.twist.linear = msg.point_1.velocity;
+    is_land_waypoint_ = (msg.command[1] == 21);
+    is_takeoff_waypoint_ = (msg.command[1] == 22);
+  }
+  if (msg.point_valid[1] == true) {
+    goal_mission_item_msg_ = toEigen(msg.point_2.position);
   }
 }
 

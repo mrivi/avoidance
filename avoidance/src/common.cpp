@@ -333,20 +333,24 @@ geometry_msgs::PoseStamped toPoseStamped(const Eigen::Vector3f& ev3, const Eigen
   return gmps;
 }
 
-void transformPoseToTrajectory(mavros_msgs::Trajectory& obst_avoid, geometry_msgs::PoseStamped pose) {
+void transformPoseToTrajectory(mavros_msgs::Trajectory& obst_avoid, geometry_msgs::PoseStamped pose,
+  geometry_msgs::Twist vel) {
   obst_avoid.header = pose.header;
   obst_avoid.type = 0;  // MAV_TRAJECTORY_REPRESENTATION::WAYPOINTS
   obst_avoid.point_1.position.x = pose.pose.position.x;
   obst_avoid.point_1.position.y = pose.pose.position.y;
   obst_avoid.point_1.position.z = pose.pose.position.z;
-  obst_avoid.point_1.velocity.x = NAN;
-  obst_avoid.point_1.velocity.y = NAN;
-  obst_avoid.point_1.velocity.z = NAN;
+  obst_avoid.point_1.velocity.x = vel.linear.x;
+  obst_avoid.point_1.velocity.y = vel.linear.y;
+  obst_avoid.point_1.velocity.z = vel.linear.z;
   obst_avoid.point_1.acceleration_or_force.x = NAN;
   obst_avoid.point_1.acceleration_or_force.y = NAN;
   obst_avoid.point_1.acceleration_or_force.z = NAN;
   obst_avoid.point_1.yaw = tf::getYaw(pose.pose.orientation);
   obst_avoid.point_1.yaw_rate = NAN;
+
+  printf("out %f %f %f - %f %f %f \n", obst_avoid.point_1.position.x, obst_avoid.point_1.position.y, obst_avoid.point_1.position.z,
+obst_avoid.point_1.velocity.x, obst_avoid.point_1.velocity.y, obst_avoid.point_1.velocity.z);
 
   fillUnusedTrajectoryPoint(obst_avoid.point_2);
   fillUnusedTrajectoryPoint(obst_avoid.point_3);

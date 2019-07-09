@@ -107,6 +107,7 @@ class LocalPlanner {
   Eigen::Vector3f velocity_ = Eigen::Vector3f::Zero();
   Eigen::Vector3f goal_ = Eigen::Vector3f::Zero();
   Eigen::Vector3f position_old_ = Eigen::Vector3f::Zero();
+  Eigen::Vector3f desired_vel_ = Eigen::Vector3f::Zero();
 
   Histogram polar_histogram_ = Histogram(ALPHA_RES);
   Histogram to_fcu_histogram_ = Histogram(ALPHA_RES);
@@ -145,6 +146,11 @@ class LocalPlanner {
   bool currently_armed_ = false;
   bool smooth_waypoints_ = true;
   bool disable_rise_to_goal_altitude_ = false;
+  bool rtl_descend_ = false;
+  bool rtl_climb_ = false;
+  bool is_land_waypoint_ = false;
+  bool is_takeoff_waypoint_ = false;
+  NavigationState nav_state_ = NavigationState::none;
 
   double timeout_startup_;
   double timeout_critical_;
@@ -174,9 +180,11 @@ class LocalPlanner {
 
   /**
   * @brief     setter method for mission goal
-  * @param[in] mgs, goal message coming from the FCU
+  * @param[in] goal, position goal message coming from the FCU
+  * @param[in] vel, velocity goal message coming from the FCU
   **/
-  void setGoal(const Eigen::Vector3f& goal);
+  void setGoal(const Eigen::Vector3f& goal, const Eigen::Vector3f& vel,
+  const bool is_land_waypoint, const bool is_takeoff_waypoint);
 
   /**
   * @brief     setter method for field of view
@@ -259,6 +267,7 @@ class LocalPlanner {
   * @brief     setter method for PX4 Firmware paramters
   **/
   void setDefaultPx4Parameters();
+  void setNavigationState(const NavigationState &nav_state);
 };
 }
 
