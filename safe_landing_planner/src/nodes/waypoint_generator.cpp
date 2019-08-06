@@ -93,11 +93,8 @@ SLPState WaypointGenerator::chooseNextState(SLPState currentState, usm::Transiti
                 USM_MAP(usm::Transition::NEXT2, SLPState::LOITER);
                 USM_MAP(usm::Transition::NEXT3, SLPState::LAND));
       USM_STATE(transition, SLPState::ALTITUDE_CHANGE, USM_MAP(usm::Transition::NEXT1, SLPState::LOITER));
-      USM_STATE(transition, SLPState::LOITER, USM_MAP(usm::Transition::NEXT1, SLPState::LAND);
-                USM_MAP(usm::Transition::NEXT2, SLPState::GOTO);
-                USM_MAP(usm::Transition::NEXT3, SLPState::EVALUATE_GRID));
-      USM_STATE(transition, SLPState::EVALUATE_GRID, USM_MAP(usm::Transition::NEXT1, SLPState::GOTO);
-                USM_MAP(usm::Transition::NEXT2, SLPState::LOITER));
+      USM_STATE(transition, SLPState::LOITER, USM_MAP(usm::Transition::NEXT1, SLPState::EVALUATE_GRID));
+      USM_STATE(transition, SLPState::EVALUATE_GRID, USM_MAP(usm::Transition::NEXT1, SLPState::GOTO));
       USM_STATE(transition, SLPState::LAND, ));
   // clang-format on
 }
@@ -127,7 +124,7 @@ usm::Transition WaypointGenerator::runCurrentState() {
 }
 
 usm::Transition WaypointGenerator::runGoTo() {
-  decision_taken_ = false;
+  // decision_taken_ = false;
   if (explorarion_is_active_) {
     landing_radius_ = 0.5f;
     yaw_setpoint_ = avoidance::nextYaw(position_, goal_);
@@ -142,23 +139,52 @@ usm::Transition WaypointGenerator::runGoTo() {
   ROS_INFO("[WGN] Landing Radius: xy  %f, z %f ", (goal_.topRows<2>() - position_.topRows<2>()).norm(),
            fabsf(position_.z() - altitude_landing_area_percentile_));
 
-  if (found_land_area_in_grid_) {
-    landing_radius_ = 0.5f;
-    if (withinLandingRadius()) {
-      found_land_area_in_grid_ = false;
-      return usm::Transition::NEXT3;
-    } else {
-      return usm::Transition::REPEAT;
-    }
-  }
-  if (withinLandingRadius() && !inVerticalRange() && is_land_waypoint_) {
-    return usm::Transition::NEXT1;
+  // if (found_land_area_in_grid_) {
+  //   landing_radius_ = 0.5f;
+  //   if (withinLandingRadius()) {
+  //     found_land_area_in_grid_ = false;
+  //     return usm::Transition::NEXT3;
+  //   } else {
+  //     return usm::Transition::REPEAT;
+  //   }
+  // }
+  if (withinLandingRadius() && !inVerticalRange() && is_land_waypoint_ && !decision_taken_) {
+    return usm::Transition::NEXT1; // ALTITUDE_CHANGE
   }
 
-  if (withinLandingRadius() && inVerticalRange() && is_land_waypoint_) {
+  if (withinLandingRadius() && inVerticalRange() && is_land_waypoint_ && !decision_taken_) {
     start_seq_landing_decision_ = grid_slp_seq_;
-    return usm::Transition::NEXT2;
+    return usm::Transition::NEXT2; // LOITER
   }
+
+  if (withinLandingRadius() && is_land_waypoint_ && decision_taken_ && can_land_) {
+    return usm::Transition::NEXT3; // LAND
+  }
+
+  if (withinLandingRadius() && is_land_waypoint_ && decision_taken_ && !can_land_) {
+    if (!explorarion_is_active_) {
+      exploration_anchor_ = loiter_position_;
+      explorarion_is_active_ = true;
+    }
+    float offset_exploration_setpoint =
+        spiral_width_ * factor_exploration_ * 2.f * static_cast<float>(smoothing_land_cell_) * grid_slp_.getCellSize();
+    n_explored_pattern_++;
+    if (n_explored_pattern_ == exploration_pattern.size()) {
+      n_explored_pattern_ = 0;
+      factor_exploration_ += 1.f;
+    }
+    goal_ = Eigen::Vector3f(
+        exploration_anchor_.x() + offset_exploration_setpoint * exploration_pattern[n_explored_pattern_].x(),
+        exploration_anchor_.y() + offset_exploration_setpoint * exploration_pattern[n_explored_pattern_].y(),
+        exploration_anchor_.z());
+    velocity_setpoint_ = nan_setpoint;
+    decision_taken_ = false;
+    start_grid_exploration_ = true;
+    return usm::Transition::REPEAT; // GOTO indici spirale
+  }
+
+  return usm::Transition::REPEAT;
+
 }
 
 usm::Transition WaypointGenerator::runAltitudeChange() {
@@ -182,16 +208,21 @@ usm::Transition WaypointGenerator::runAltitudeChange() {
 
   if (withinLandingRadius() && inVerticalRange() && is_land_waypoint_) {
     start_seq_landing_decision_ = grid_slp_seq_;
-    return usm::Transition::NEXT1;
+    return usm::Transition::NEXT1; //Loiter
   }
   return usm::Transition::REPEAT;
 }
 
 usm::Transition WaypointGenerator::runLoiter() {
+  landing_radius_ = 0.5f;
   if (prev_slp_state_ != SLPState::LOITER) {
     loiter_position_ = position_;
     loiter_yaw_ = yaw_;
   }
+
+  publishTrajectorySetpoints_(loiter_position_, nan_setpoint, loiter_yaw_, NAN);
+  ROS_INFO("\033[1;34m [WGN] Loiter %f %f %f - nan nan nan \033[0m\n", loiter_position_.x(), loiter_position_.y(),
+           loiter_position_.z());
 
   if (prev_slp_state_ != SLPState::EVALUATE_GRID) {
     offset_center_ = Eigen::Vector2i(grid_slp_.land_.rows() / 2, grid_slp_.land_.cols() / 2);
@@ -213,41 +244,44 @@ usm::Transition WaypointGenerator::runLoiter() {
     can_land_hysteresis_matrix_ =
         (can_land_hysteresis_matrix_.array() > can_land_thr_).select(1, can_land_hysteresis_matrix_);
     can_land_hysteresis_result_ = can_land_hysteresis_matrix_.template cast<int>();
-    std::cout << can_land_hysteresis_result_ << std::endl;
 
-    Eigen::Vector2i left_upper_corner =
-        Eigen::Vector2i(offset_center_.x() - smoothing_land_cell_, offset_center_.y() - smoothing_land_cell_);
-    can_land_ = evaluatePatch(left_upper_corner);
+    return usm::Transition::NEXT1; // EVALUATE_GRID
+
+    // Eigen::Vector2i left_upper_corner =
+    //     Eigen::Vector2i(offset_center_.x() - smoothing_land_cell_, offset_center_.y() - smoothing_land_cell_);
+    // can_land_ = evaluatePatch(left_upper_corner);
   }
 
-  publishTrajectorySetpoints_(loiter_position_, nan_setpoint, loiter_yaw_, NAN);
-  ROS_INFO("\033[1;34m [WGN] Loiter %f %f %f - nan nan nan \033[0m\n", loiter_position_.x(), loiter_position_.y(),
-           loiter_position_.z());
-  if (decision_taken_ && can_land_) {
-    return usm::Transition::NEXT1;
-  } else if (decision_taken_ && !can_land_ && start_grid_exploration_) {
-    return usm::Transition::NEXT3;
-  } else if (decision_taken_ && !can_land_) {
-    if (!explorarion_is_active_) {
-      exploration_anchor_ = loiter_position_;
-      explorarion_is_active_ = true;
-    }
-    float offset_exploration_setpoint =
-        spiral_width_ * factor_exploration_ * 2.f * static_cast<float>(smoothing_land_cell_) * grid_slp_.getCellSize();
-    n_explored_pattern_++;
-    if (n_explored_pattern_ == exploration_pattern.size()) {
-      n_explored_pattern_ = 0;
-      factor_exploration_ += 1.f;
-    }
-    goal_ = Eigen::Vector3f(
-        exploration_anchor_.x() + offset_exploration_setpoint * exploration_pattern[n_explored_pattern_].x(),
-        exploration_anchor_.y() + offset_exploration_setpoint * exploration_pattern[n_explored_pattern_].y(),
-        exploration_anchor_.z());
-    velocity_setpoint_ = nan_setpoint;
-    start_grid_exploration_ = true;
-    return usm::Transition::NEXT2;
-  }
   return usm::Transition::REPEAT;
+
+  // publishTrajectorySetpoints_(loiter_position_, nan_setpoint, loiter_yaw_, NAN);
+  // ROS_INFO("\033[1;34m [WGN] Loiter %f %f %f - nan nan nan \033[0m\n", loiter_position_.x(), loiter_position_.y(),
+  //          loiter_position_.z());
+  // if (decision_taken_ && can_land_) {
+  //   return usm::Transition::NEXT1;
+  // } else if (decision_taken_ && !can_land_ && start_grid_exploration_) {
+  //   return usm::Transition::NEXT3;
+  // } else if (decision_taken_ && !can_land_) {
+  //   if (!explorarion_is_active_) {
+  //     exploration_anchor_ = loiter_position_;
+  //     explorarion_is_active_ = true;
+  //   }
+  //   float offset_exploration_setpoint =
+  //       spiral_width_ * factor_exploration_ * 2.f * static_cast<float>(smoothing_land_cell_) * grid_slp_.getCellSize();
+  //   n_explored_pattern_++;
+  //   if (n_explored_pattern_ == exploration_pattern.size()) {
+  //     n_explored_pattern_ = 0;
+  //     factor_exploration_ += 1.f;
+  //   }
+  //   goal_ = Eigen::Vector3f(
+  //       exploration_anchor_.x() + offset_exploration_setpoint * exploration_pattern[n_explored_pattern_].x(),
+  //       exploration_anchor_.y() + offset_exploration_setpoint * exploration_pattern[n_explored_pattern_].y(),
+  //       exploration_anchor_.z());
+  //   velocity_setpoint_ = nan_setpoint;
+  //   start_grid_exploration_ = true;
+  //   return usm::Transition::NEXT2;
+  // }
+  // return usm::Transition::REPEAT;
 }
 
 usm::Transition WaypointGenerator::runLand() {
@@ -271,6 +305,14 @@ usm::Transition WaypointGenerator::runEvaluateGrid() {
   Eigen::Vector2i center = Eigen::Vector2i(grid_slp_.land_.rows() / 2, grid_slp_.land_.cols() / 2);
   Eigen::Vector2i offset = Eigen::Vector2i(grid_slp_.land_.rows() / 2, grid_slp_.land_.cols() / 2);
 
+  Eigen::Vector2i left_upper_corner =
+      Eigen::Vector2i(offset_center_.x() - smoothing_land_cell_, offset_center_.y() - smoothing_land_cell_);
+  can_land_ = evaluatePatch(left_upper_corner);
+  if (can_land_) {
+    decision_taken_ = true;
+    return usm::Transition::NEXT1; // GOTO
+  }
+
   int n_iterations = (1 + (grid_slp_.land_.rows() - (2 * smoothing_land_cell_ + 1)) / stride_) / 2;
   for (int i = 1; i < n_iterations; i++) {
     for (int j = 0; j < exploration_pattern.size(); j++) {
@@ -279,20 +321,31 @@ usm::Transition WaypointGenerator::runEvaluateGrid() {
       can_land_ = evaluatePatch(offset);
 
       if (can_land_) {
+        decision_taken_ = true;
         found_land_area_in_grid_ = true;
         Eigen::Vector2f min, max;
 
         grid_slp_.getGridLimits(min, max);
-        goal_ = Eigen::Vector3f(min.x() + grid_slp_.getCellSize() * (offset.x() + smoothing_land_cell_),
-                                min.y() + grid_slp_.getCellSize() * (offset.y() + smoothing_land_cell_), position_.z());
+        // goal_ = Eigen::Vector3f(min.x() + grid_slp_.getCellSize() * (offset.x() + smoothing_land_cell_),
+        //                         min.y() + grid_slp_.getCellSize() * (offset.y() + smoothing_land_cell_), position_.z());
+
+        goal_ = Eigen::Vector3f(position_.x() + (offset.x() + smoothing_land_cell_ - grid_slp_.land_.rows() / 2) * grid_slp_.getCellSize(),
+                               position_.y() + (offset.y() + smoothing_land_cell_ - grid_slp_.land_.cols() / 2) * grid_slp_.getCellSize(),
+                               position_.z());
+
+        velocity_setpoint_.z() = NAN;
         ROS_INFO("found_land_area_in_grid_ index %d %d - %f %f %f \n", offset.x(), offset.y(), goal_.x(), goal_.y(),
                  goal_.z());
-        return usm::Transition::NEXT1;
+        return usm::Transition::NEXT1; // GOTO
       }
     }
   }
   start_grid_exploration_ = false;
-  return usm::Transition::NEXT2;
+  decision_taken_ = true;
+
+  // return usm::Transition::NEXT2;
+  return usm::Transition::NEXT1; // GOTO
+
 }
 
 bool WaypointGenerator::evaluatePatch(Eigen::Vector2i &left_upper_corner) {

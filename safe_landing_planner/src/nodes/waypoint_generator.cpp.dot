@@ -5,10 +5,8 @@ digraph {
     "GOTO" -> "GOTO" [label="ERROR", style="dotted", weight=0.1]
     "ALTITUDE_CHANGE" -> "LOITER" [label="NEXT1", style="solid", weight=1]
     "ALTITUDE_CHANGE" -> "GOTO" [label="ERROR", style="dotted", weight=0.1]
-    "LOITER" -> "LAND" [label="NEXT1", style="solid", weight=1]
-    "LOITER" -> "GOTO" [label="NEXT2\nERROR", style="solid", weight=1]
-    "LOITER" -> "EVALUATE_GRID" [label="NEXT3", style="solid", weight=1]
+    "LOITER" -> "EVALUATE_GRID" [label="NEXT1", style="solid", weight=1]
+    "LOITER" -> "GOTO" [label="ERROR", style="dotted", weight=0.1]
     "EVALUATE_GRID" -> "GOTO" [label="NEXT1\nERROR", style="solid", weight=1]
-    "EVALUATE_GRID" -> "LOITER" [label="NEXT2", style="solid", weight=1]
     "LAND" -> "GOTO" [label="ERROR", style="dotted", weight=0.1]
 }
