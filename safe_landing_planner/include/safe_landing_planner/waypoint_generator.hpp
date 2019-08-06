@@ -54,8 +54,7 @@ class WaypointGenerator : public usm::StateMachine<SLPState> {
   bool can_land_ = true;
   bool update_smoothing_size_ = false;
   bool explorarion_is_active_ = false;
-  bool found_land_area_in_grid_ = false;
-  bool start_grid_exploration_ = true;
+  bool set_loiter_sp_ = false;
   int start_seq_landing_decision_ = 0;
   int grid_slp_seq_ = 0;
   int n_explored_pattern_ = -1;

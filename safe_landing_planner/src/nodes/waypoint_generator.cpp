@@ -109,6 +109,7 @@ usm::Transition WaypointGenerator::runCurrentState() {
     return usm::Transition::ERROR;
   }
 
+
   switch (getState()) {
     case SLPState::GOTO:
       return runGoTo();
@@ -128,10 +129,11 @@ usm::Transition WaypointGenerator::runCurrentState() {
     case SLPState::GOTO_LAND:
       return runGoToLand();
   }
+
+
 }
 
 usm::Transition WaypointGenerator::runGoTo() {
-  // decision_taken_ = false;
   if (explorarion_is_active_) {
     landing_radius_ = 0.5f;
     yaw_setpoint_ = avoidance::nextYaw(position_, goal_);
@@ -168,8 +170,7 @@ usm::Transition WaypointGenerator::runGoTo() {
         exploration_anchor_.z());
     velocity_setpoint_ = nan_setpoint;
     decision_taken_ = false;
-    start_grid_exploration_ = true;
-    return usm::Transition::REPEAT; // GOTO indici spirale
+    return usm::Transition::REPEAT; // GOTO
   }
 
   return usm::Transition::REPEAT;
@@ -210,8 +211,9 @@ usm::Transition WaypointGenerator::runAltitudeChange() {
   ROS_INFO("[WGN] Landing Radius: xy  %f, z %f ", (goal_.topRows<2>() - position_.topRows<2>()).norm(),
            fabsf(position_.z() - altitude_landing_area_percentile_));
 
-  if (withinLandingRadius() && inVerticalRange() && is_land_waypoint_) {
+  if (inVerticalRange()) {
     start_seq_landing_decision_ = grid_slp_seq_;
+    set_loiter_sp_ = true;
     return usm::Transition::NEXT1; //Loiter
   }
   return usm::Transition::REPEAT;
@@ -219,9 +221,13 @@ usm::Transition WaypointGenerator::runAltitudeChange() {
 
 usm::Transition WaypointGenerator::runLoiter() {
   landing_radius_ = 0.5f;
-  if (prev_slp_state_ != SLPState::LOITER) {
+  std::cout << toString(prev_slp_state_) << std::endl;
+  if (set_loiter_sp_) {
     loiter_position_ = position_;
+    goal_ = loiter_position_;
     loiter_yaw_ = yaw_;
+    set_loiter_sp_ = false;
+    std::cout << "runLoiter update goal position !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! pre state" << toString(prev_slp_state_) << "\n";
   }
 
   publishTrajectorySetpoints_(loiter_position_, nan_setpoint, loiter_yaw_, NAN);
@@ -238,8 +244,6 @@ usm::Transition WaypointGenerator::runLoiter() {
       }
     }
   } else {
-    decision_taken_ = true;
-
     can_land_hysteresis_matrix_ =
         (can_land_hysteresis_matrix_.array() <= can_land_thr_).select(0, can_land_hysteresis_matrix_);
     can_land_hysteresis_matrix_ =
@@ -290,13 +294,9 @@ usm::Transition WaypointGenerator::runEvaluateGrid() {
 
       if (can_land_) {
         decision_taken_ = true;
-        found_land_area_in_grid_ = true;
         Eigen::Vector2f min, max;
 
         grid_slp_.getGridLimits(min, max);
-        // goal_ = Eigen::Vector3f(min.x() + grid_slp_.getCellSize() * (offset.x() + smoothing_land_cell_),
-        //                         min.y() + grid_slp_.getCellSize() * (offset.y() + smoothing_land_cell_), position_.z());
-
         goal_ = Eigen::Vector3f(position_.x() + (offset.x() + smoothing_land_cell_ - grid_slp_.land_.rows() / 2) * grid_slp_.getCellSize(),
                                position_.y() + (offset.y() + smoothing_land_cell_ - grid_slp_.land_.cols() / 2) * grid_slp_.getCellSize(),
                                position_.z());
@@ -307,7 +307,6 @@ usm::Transition WaypointGenerator::runEvaluateGrid() {
       }
     }
   }
-  start_grid_exploration_ = false;
   decision_taken_ = true;
 
   return usm::Transition::NEXT1; // GOTO
