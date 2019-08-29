@@ -30,6 +30,7 @@ class StarPlanner {
   float acceptance_radius_ = 2.f;
   float max_sensor_range_ = 15.f;
   float min_sensor_range_ = 0.2f;
+  float tree_step_size_s_ = 0.05f;
 
   pcl::PointCloud<pcl::PointXYZI> cloud_;
 
