@@ -72,6 +72,7 @@ class LocalPlannerVisualization {
   **/
   void visualizeWaypoints(const Eigen::Vector3f& goto_position, const Eigen::Vector3f& adapted_goto_position,
                           const Eigen::Vector3f& smoothed_goto_position) const;
+  std::tuple<float, float, float> HSVtoRGB(std::tuple<float, float, float> hsv) const;
 
   /**
   * @brief       Visualization of the actual path of the drone and the path of
@@ -135,6 +136,7 @@ class LocalPlannerVisualization {
   ros::Publisher deg60_point_pub_;
   ros::Publisher fov_pub_;
   ros::Publisher range_scan_pub_;
+  ros::Publisher tree_cost_pub_;
 
   int path_length_ = 0;
 };

@@ -94,7 +94,7 @@ void StarPlanner::buildLookAheadTree() {
         int close_nodes = 0;
         for (size_t i = 0; i < tree_.size(); i++) {
           float dist = (tree_[i].getPosition() - trajectory.back().position).norm();
-          if (dist < 0.2f) {
+          if (dist < 1.f) {
             close_nodes++;
             break;
           }
