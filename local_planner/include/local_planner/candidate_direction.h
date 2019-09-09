@@ -13,6 +13,12 @@ struct candidateDirection {
   float azimuth_angle;
   TreeNode tree_node;
 
+  float velocity_cost;
+  float yaw_cost;
+  float yaw_to_line_cost;
+  float pitch_cost;
+  float distance_cost;
+
   candidateDirection(float c, float e, float z) : cost(c), elevation_angle(e), azimuth_angle(z) {
     simulation_state start_state;
     start_state.position = Eigen::Vector3f(0.0f, 0.0f, 0.0f);
@@ -31,6 +37,14 @@ struct candidateDirection {
     return Eigen::Vector3f(std::cos(elevation_angle * DEG_TO_RAD) * std::sin(azimuth_angle * DEG_TO_RAD),
                            std::cos(elevation_angle * DEG_TO_RAD) * std::cos(azimuth_angle * DEG_TO_RAD),
                            std::sin(elevation_angle * DEG_TO_RAD));
+  }
+
+  void setInvidualCosts(float v, float y, float yl, float p, float d) {
+    velocity_cost = v;
+    yaw_cost = y;
+    yaw_to_line_cost = yl;
+    pitch_cost = p;
+    distance_cost = d;
   }
 };
 }

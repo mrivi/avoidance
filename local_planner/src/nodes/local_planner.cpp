@@ -133,9 +133,21 @@ void LocalPlanner::determineStrategy() {
     closest_pt_ = goal_;
   }
 
+  Eigen::MatrixXf distance_matrix;
+  Eigen::MatrixXf yaw_matrix;
+  Eigen::MatrixXf yaw_line_matrix;
+  Eigen::MatrixXf pitch_matrix;
+  Eigen::MatrixXf velocity_matrix;
+  distance_matrix.fill(0.f);
+  pitch_matrix.fill(0.f);
+  yaw_matrix.fill(0.f);
+  yaw_line_matrix.fill(0.f);
+  velocity_matrix.fill(0.f);
+
   if (!polar_histogram_.isEmpty()) {
       getCostMatrix(polar_histogram_, goal_, position_, velocity_, cost_params_, smoothing_margin_degrees_, closest_pt_,
-                    max_sensor_range_, min_sensor_range_, cost_matrix_, cost_image_data_);
+                    max_sensor_range_, min_sensor_range_, cost_matrix_, distance_matrix, velocity_matrix,
+                    yaw_matrix, yaw_line_matrix, pitch_matrix, cost_image_data_);
 
       simulation_limits lims;
       lims.max_z_velocity = px4_.param_mpc_z_vel_max_up;

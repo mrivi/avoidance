@@ -227,6 +227,7 @@ void LocalPlannerVisualization::publishTree(const std::vector<TreeNode>& tree, c
     tree_marker.points.push_back(p1);
     tree_marker.points.push_back(p2);
   }
+  // printf("------------------------------\n");
 
   // Visualizing the setpoints is a hack: they are actually in the body frame. This is an approximate visualization
   // that just accumulates them to illustrate them as a path
@@ -272,7 +273,7 @@ void LocalPlannerVisualization::publishTree(const std::vector<TreeNode>& tree, c
     int node_nr = closed_set[i];
     marker.pose.position = toPoint(tree[node_nr].getPosition());
     float cost = tree[node_nr].total_cost_;
-    float heuristic = tree[i].heuristic_;
+    float heuristic = tree[node_nr].heuristic_;
 
     float h =
         ((range_max - range_min) * (cost - variance_min_value) / (variance_max_value - variance_min_value)) + range_min;

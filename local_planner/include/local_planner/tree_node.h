@@ -16,6 +16,12 @@ class TreeNode {
   simulation_state state;    // State containing position, velocity and time of the drone
   Eigen::Vector3f setpoint;  // Setpoint required to send to PX4 in order to get to this state
 
+  // float velocity_cost;
+  // float yaw_cost;
+  // float yaw_to_line_cost;
+  // float pitch_cost;
+  // float distance_cost;
+
   TreeNode() = default;
   TreeNode(int from, const simulation_state& start_state, const Eigen::Vector3f& sp);
   ~TreeNode() = default;

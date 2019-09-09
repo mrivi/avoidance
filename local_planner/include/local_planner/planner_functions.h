@@ -72,7 +72,8 @@ void compressHistogramElevation(Histogram& new_hist, const Histogram& input_hist
 void getCostMatrix(const Histogram& histogram, const Eigen::Vector3f& goal, const Eigen::Vector3f& position,
                    const Eigen::Vector3f& velocity, const costParameters& cost_params, float smoothing_margin_degrees,
                    const Eigen::Vector3f& closest_pt, const float max_sensor_range, const float min_sensor_range,
-                   Eigen::MatrixXf& cost_matrix, std::vector<uint8_t>& image_data);
+                   Eigen::MatrixXf& cost_matrix, Eigen::MatrixXf& distance_matrix, Eigen::MatrixXf& v_matrix,
+                   Eigen::MatrixXf& y_matrix, Eigen::MatrixXf& yl_matrix, Eigen::MatrixXf& p_matrix, std::vector<uint8_t>& image_data);
 
 /**
 * @brief      get the index in the data vector of a color image
@@ -114,7 +115,8 @@ void getBestCandidatesFromCostMatrix(const Eigen::MatrixXf& matrix, unsigned int
 std::pair<float, float> costFunction(const PolarPoint& candidate_polar, float obstacle_distance,
                                      const Eigen::Vector3f& goal, const Eigen::Vector3f& position,
                                      const Eigen::Vector3f& velocity, const costParameters& cost_params,
-                                     const Eigen::Vector3f& closest_pt, const bool is_obstacle_facing_goal);
+                                     const Eigen::Vector3f& closest_pt, const bool is_obstacle_facing_goal,
+                                   float &velocity_cost, float &yaw_cost, float &yaw_to_line_cost, float &pitch_cost);
 
 /**
 * @brief      max-median filtes the cost matrix
