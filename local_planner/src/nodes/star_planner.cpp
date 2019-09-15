@@ -81,7 +81,10 @@ void StarPlanner::buildLookAheadTree() {
     candidate_vector.clear();
     getCostMatrix(histogram, goal_, origin_position, origin_velocity, cost_params_, smoothing_margin_degrees_,
                   closest_pt_, max_sensor_range_, min_sensor_range_, cost_matrix, cost_image_data);
-    getBestCandidatesFromCostMatrix(cost_matrix, children_per_node_, candidate_vector);
+    if (n!=0) {
+      starting_direction_ = Eigen::Vector3f(NAN, NAN, NAN);
+    }
+    getBestCandidatesFromCostMatrix(cost_matrix, children_per_node_, candidate_vector, starting_direction_, position_);
 
     // add candidates as nodes
     if (candidate_vector.empty()) {
@@ -104,10 +107,15 @@ void StarPlanner::buildLookAheadTree() {
           }
         }
 
-        if (children < children_per_node_ && close_nodes == 0) {
+        // printf("node %f %f %f cost %f close %d %d \n", candidate.toEigen().x(), candidate.toEigen().y(), candidate.toEigen().z(),
+        // candidate.cost, close_nodes, children < (children_per_node_));
+
+        if (children < (children_per_node_) && close_nodes == 0) {
           tree_.push_back(TreeNode(origin, trajectory.back(), candidate.toEigen()));
           float h = treeHeuristicFunction(tree_.size() - 1);
           tree_.back().heuristic_ = h;
+          // printf("AddTree origin %d node %f %f %f cost %f h %f \n", origin, candidate.toEigen().x(), candidate.toEigen().y(), candidate.toEigen().z(),
+          // candidate.cost, h);
           tree_.back().total_cost_ = tree_[origin].total_cost_ - tree_[origin].heuristic_ + candidate.cost + h;
           children++;
         }
@@ -143,13 +151,36 @@ void StarPlanner::buildLookAheadTree() {
     candidate_vector.clear();
   }
 
+  float min_cost_per_depth = FLT_MAX;
+  int chosen_children = 0;
+  for (size_t i = 0; i < tree_.size(); i++) {
+    if (tree_[i].closed_ == 0) {
+      size_t parent = tree_[i].origin_;
+      float total_cost = tree_[i].total_cost_;
+      int depth = 0;
+      while(tree_[parent].origin_ > 0) {
+        parent = tree_[parent].origin_;
+        depth++;
+      }
+
+      if (min_cost_per_depth > (total_cost / depth)) {
+        min_cost_per_depth = (total_cost / depth);
+        chosen_children = (int)i;
+      }
+    }
+  }
   // Get setpoints into member vector
-  int tree_end = origin;
+  int tree_end = chosen_children;
   path_node_setpoints_.clear();
   while (tree_end > 0) {
     path_node_setpoints_.push_back(tree_[tree_end].getSetpoint());
+    if (tree_[tree_end].origin_ == 0) {
+      starting_direction_ = tree_[tree_end].getSetpoint();
+    }
     tree_end = tree_[tree_end].origin_;
   }
+
+
   path_node_setpoints_.push_back(tree_[0].getSetpoint());
 }
 }

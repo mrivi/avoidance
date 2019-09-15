@@ -229,15 +229,24 @@ int colorImageIndex(int e_ind, int z_ind, int color) {
 }
 
 void getBestCandidatesFromCostMatrix(const Eigen::MatrixXf& matrix, unsigned int number_of_candidates,
-                                     std::vector<candidateDirection>& candidate_vector) {
+                                     std::vector<candidateDirection>& candidate_vector, const Eigen::Vector3f prev_init_dir,
+                                   const Eigen::Vector3f pos) {
   std::priority_queue<candidateDirection, std::vector<candidateDirection>, std::less<candidateDirection>> queue;
-
+  printf("-----------------------------------\n" );
   for (int row_index = 0; row_index < matrix.rows(); row_index++) {
     for (int col_index = 0; col_index < matrix.cols(); col_index++) {
       PolarPoint p_pol = histogramIndexToPolar(row_index, col_index, ALPHA_RES, 1.0);
       float cost = matrix(row_index, col_index);
       candidateDirection candidate(cost, p_pol.e, p_pol.z);
-
+      float init_angle = 0.f;
+      if (!prev_init_dir.array().hasNaN()) {
+        Eigen::Vector3f candidate_dir = candidate.toEigen();
+        printf("prev %f %f %f cand %f %f %f \n", prev_init_dir.x(), prev_init_dir.y(), prev_init_dir.z(),
+      candidate_dir.x(), candidate_dir.y(), candidate_dir.z());
+        init_angle = acos(candidate_dir.dot(prev_init_dir) / (candidate_dir.norm() * prev_init_dir.norm())) * RAD_TO_DEG;
+        printf("init angle %f \n", init_angle);
+      }
+      candidate.cost += (init_angle > 90.f) ? 5000.f * init_angle : 0.f;
       if (queue.size() < number_of_candidates) {
         queue.push(candidate);
       } else if (candidate < queue.top()) {
@@ -245,6 +254,16 @@ void getBestCandidatesFromCostMatrix(const Eigen::MatrixXf& matrix, unsigned int
         queue.pop();
       }
     }
+  }
+
+  for (int i = 0; i < 3; i++) {
+    candidateDirection candidate(0.f, queue.top().elevation_angle, queue.top().azimuth_angle + (i + 1) * 90.f);
+    PolarPoint candidate_polar = PolarPoint(candidate.elevation_angle, candidate.azimuth_angle, 1.f);
+    Eigen::Vector2i histogram_index = polarToHistogramIndex(candidate_polar, ALPHA_RES);
+    candidate.cost = matrix(histogram_index.y(), histogram_index.x());
+    // printf("Added candidate position %f %f %f cost %f \n", candidate.toEigen().x(), candidate.toEigen().y(),
+    // candidate.toEigen().z(), candidate.cost);
+    queue.push(candidate);
   }
   // copy queue to vector and change order such that lowest cost is at the
   // front
@@ -352,7 +371,7 @@ std::pair<float, float> costFunction(const PolarPoint& candidate_polar, float ob
   const float pitch_cost =
       cost_params.pitch_cost_param * (candidate_polar.e - facing_goal.e) * (candidate_polar.e - facing_goal.e);
   const float d = cost_params.obstacle_cost_param - obstacle_distance;
-  const float distance_cost = obstacle_distance > 0 ? 5000.0f * (1 + d / sqrt(1 + d * d)) : 0.0f;
+  const float distance_cost = obstacle_distance > 0.f ? 5000.0f * (1 + d / sqrt(1 + d * d)) : 0.0f;
 
   return std::pair<float, float>(distance_cost, velocity_cost + yaw_cost + yaw_to_line_cost + pitch_cost);
 }
