@@ -118,16 +118,15 @@ void StarPlanner::buildLookAheadTree() {
           float h = treeHeuristicFunction(tree_.size() - 1);
           tree_.back().heuristic_ = h;
           tree_.back().total_cost_ = tree_[origin].total_cost_ - tree_[origin].heuristic_ + candidate.cost + h;
-          printf("AddTree origin %d node %f %f %f cost %f h %f \n", origin, candidate.toEigen().x(), candidate.toEigen().y(), candidate.toEigen().z(),
-          tree_.back().total_cost_, h);
+
           if (n==0) {
+            printf("AddTree origin %d node %f %f %f cost %f h %f \n", origin, candidate.toEigen().x(), candidate.toEigen().y(), candidate.toEigen().z(),
+            tree_.back().total_cost_, h);
             Eigen::Vector2f candidate_dir = candidate.toEigen().head<2>();
             Eigen::Vector2f prev_init_dir_2f = starting_direction_.head<2>();
-            float init_angle = atan2(candidate_dir.y(), candidate_dir.x()) - atan2(prev_init_dir_2f.y(), prev_init_dir_2f.x());
-            if (init_angle < 0.f) { init_angle += (2.f * M_PI_F); }
-            init_angle *= RAD_TO_DEG;
-            float add = init_angle > 10.f ? (5000.f / (1.f + std::exp((-init_angle + 10.f) / 10.f))) : 0.f;
-            printf("angle diff %f cost %f \n", init_angle, add);
+            float angle = 0.f;
+            float add = costChangeInTreeDirection(prev_init_dir_2f, candidate_dir, angle);
+            printf("angle diff %f cost %f \n", angle, add);
           }
           children++;
         }

@@ -157,5 +157,6 @@ void printHistogram(const Histogram& histogram);
 bool interpolateBetweenSetpoints(const std::vector<Eigen::Vector3f>& setpoint_array,
                                  const ros::Time& path_generation_time, float tree_node_duration,
                                  Eigen::Vector3f& setpoint);
+float costChangeInTreeDirection(Eigen::Vector2f &prev_direction, Eigen::Vector2f &curr_direction, float &init_angle);
 }
 #endif  // LOCAL_PLANNER_FUNCTIONS_H
