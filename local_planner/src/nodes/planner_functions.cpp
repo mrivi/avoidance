@@ -232,7 +232,7 @@ void getBestCandidatesFromCostMatrix(const Eigen::MatrixXf& matrix, unsigned int
                                      std::vector<candidateDirection>& candidate_vector, const Eigen::Vector3f prev_init_dir,
                                    const Eigen::Vector3f pos) {
   std::priority_queue<candidateDirection, std::vector<candidateDirection>, std::less<candidateDirection>> queue;
-  printf("-----------------------------------\n" );
+  // printf("-----------------------------------\n" );
   for (int row_index = 0; row_index < matrix.rows(); row_index++) {
     for (int col_index = 0; col_index < matrix.cols(); col_index++) {
       PolarPoint p_pol = histogramIndexToPolar(row_index, col_index, ALPHA_RES, 1.0);
@@ -240,13 +240,19 @@ void getBestCandidatesFromCostMatrix(const Eigen::MatrixXf& matrix, unsigned int
       candidateDirection candidate(cost, p_pol.e, p_pol.z);
       float init_angle = 0.f;
       if (!prev_init_dir.array().hasNaN()) {
-        Eigen::Vector3f candidate_dir = candidate.toEigen();
-        printf("prev %f %f %f cand %f %f %f \n", prev_init_dir.x(), prev_init_dir.y(), prev_init_dir.z(),
-      candidate_dir.x(), candidate_dir.y(), candidate_dir.z());
-        init_angle = acos(candidate_dir.dot(prev_init_dir) / (candidate_dir.norm() * prev_init_dir.norm())) * RAD_TO_DEG;
-        printf("init angle %f \n", init_angle);
+        Eigen::Vector2f candidate_dir = candidate.toEigen().head<2>();
+        Eigen::Vector2f prev_init_dir_2f = prev_init_dir.head<2>();
+        init_angle = atan2(candidate_dir.y(), candidate_dir.x()) - atan2(prev_init_dir_2f.y(), prev_init_dir_2f.x());
+        if (init_angle < 0.f) { init_angle += (2.f * M_PI_F); }
+        init_angle *= RAD_TO_DEG;
+        // init_angle = acos(candidate_dir.dot(prev_init_dir_2f) / (candidate_dir.norm() * prev_init_dir_2f.norm())) * RAD_TO_DEG;
+        // printf("prev %f %f cand %f %f angle %f \n", prev_init_dir.x(), prev_init_dir.y(),
+        // candidate_dir.x(), candidate_dir.y(), init_angle);
+        // float add = (init_angle > 90.f) ? 5000.f * init_angle : 0.f;
+        // printf("init angle %f cost %f %f \n", init_angle,   candidate.cost,   candidate.cost+ add);
       }
-      candidate.cost += (init_angle > 90.f) ? 5000.f * init_angle : 0.f;
+      float add = init_angle > 10.f ? (5000.f / (1.f + std::exp((-init_angle + 10.f) / 10.f))) : 0.f;
+      candidate.cost += add;
       if (queue.size() < number_of_candidates) {
         queue.push(candidate);
       } else if (candidate < queue.top()) {
@@ -372,6 +378,7 @@ std::pair<float, float> costFunction(const PolarPoint& candidate_polar, float ob
       cost_params.pitch_cost_param * (candidate_polar.e - facing_goal.e) * (candidate_polar.e - facing_goal.e);
   const float d = cost_params.obstacle_cost_param - obstacle_distance;
   const float distance_cost = obstacle_distance > 0.f ? 5000.0f * (1 + d / sqrt(1 + d * d)) : 0.0f;
+  // const float distance_cost = 2.f * 5000.f * (1.f / (1.f + std::exp(5.f * (obstacle_distance - cost_params.obstacle_cost_param))));
 
   return std::pair<float, float>(distance_cost, velocity_cost + yaw_cost + yaw_to_line_cost + pitch_cost);
 }
