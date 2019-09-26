@@ -238,7 +238,6 @@ void getBestCandidatesFromCostMatrix(const Eigen::MatrixXf& matrix, unsigned int
       PolarPoint p_pol = histogramIndexToPolar(row_index, col_index, ALPHA_RES, 1.0);
       float cost = matrix(row_index, col_index);
       candidateDirection candidate(cost, p_pol.e, p_pol.z);
-      float init_angle = 0.f;
       if (!prev_init_dir.array().hasNaN()) {
         Eigen::Vector2f candidate_dir = candidate.toEigen().head<2>();
         Eigen::Vector2f prev_init_dir_2f = prev_init_dir.head<2>();
@@ -271,10 +270,10 @@ void getBestCandidatesFromCostMatrix(const Eigen::MatrixXf& matrix, unsigned int
   for (int i = 0; i < 5; i++) {
     candidateDirection candidate(0.f, best_direction.elevation_angle, best_direction.azimuth_angle + (i + 1) * 60.f);
     PolarPoint candidate_polar = PolarPoint(candidate.elevation_angle, candidate.azimuth_angle, 1.f);
+    wrapPolar(candidate_polar);
     Eigen::Vector2i histogram_index = polarToHistogramIndex(candidate_polar, ALPHA_RES);
     candidate.cost = matrix(histogram_index.y(), histogram_index.x());
-    PolarPoint p_wrapped = candidate_polar;
-    wrapPolar(p_wrapped);
+
     if (!prev_init_dir.array().hasNaN()) {
       Eigen::Vector2f candidate_dir = candidate.toEigen().head<2>();
       Eigen::Vector2f prev_init_dir_2f = prev_init_dir.head<2>();
@@ -314,9 +313,9 @@ float costChangeInTreeDirection(Eigen::Vector2f &prev_direction, Eigen::Vector2f
   init_angle *= RAD_TO_DEG;
   init_angle = std::abs(init_angle);
   float add = init_angle > 10.f ? (5000.f / (1.f + std::exp((-init_angle + 10.f) / 20.f))) : 0.f;
-  // if (init_angle > 89.f) {
-  //   add = FLT_MAX;
-  // }
+  if (init_angle > 20.f) {
+    add = 1000000.0f;
+  }
 
   return add;
 }
@@ -415,10 +414,12 @@ std::pair<float, float> costFunction(const PolarPoint& candidate_polar, float ob
   const float yaw_to_line_cost = weight * cost_params.yaw_cost_param * angle_diff_to_line * angle_diff_to_line;
   const float pitch_cost =
       cost_params.pitch_cost_param * (candidate_polar.e - facing_goal.e) * (candidate_polar.e - facing_goal.e);
-  const float d = cost_params.obstacle_cost_param - obstacle_distance;
-  // const float distance_cost = obstacle_distance > 0.f ? 5000.0f * (1 + d / sqrt(1 + d * d)) : 0.0f;
+  const float d = 2.f + cost_params.obstacle_cost_param - obstacle_distance;
+  const float distance_cost = obstacle_distance > 0.f ? 1000.0f * (1 + d / sqrt(1 + d * d)) : 0.0f;
+
+
   // y2 = 10000.0 * (1 / (1 + np.exp((-5*d + 5))))
-  const float distance_cost = obstacle_distance > 0.f ? 10000.0f * (1.f / (1.f + std::exp(-cost_params.obstacle_cost_param * d + cost_params.obstacle_cost_param))) : 0.0f;
+  // const float distance_cost = obstacle_distance > 0.f ? 10000.0f * (1.f / (1.f + std::exp(-cost_params.obstacle_cost_param * d + cost_params.obstacle_cost_param))) : 0.0f;
 
   return std::pair<float, float>(distance_cost, velocity_cost + yaw_cost + yaw_to_line_cost + pitch_cost);
 }

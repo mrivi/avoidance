@@ -41,6 +41,7 @@ void StarPlanner::setClosestPointOnLine(const Eigen::Vector3f& closest_pt) { clo
 
 float StarPlanner::treeHeuristicFunction(int node_number) const {
   return (goal_ - tree_[node_number].getPosition()).norm() * tree_heuristic_weight_;
+  // return ((goal_ - tree_[node_number].getPosition()).norm() / lims_.max_xy_velocity_norm + tree_[node_number].state.time)* tree_heuristic_weight_;
 }
 
 void StarPlanner::buildLookAheadTree() {
@@ -83,11 +84,25 @@ void StarPlanner::buildLookAheadTree() {
     getCostMatrix(histogram, goal_, origin_position, origin_velocity, cost_params_, smoothing_margin_degrees_,
                   closest_pt_, max_sensor_range_, min_sensor_range_, cost_matrix, cost_image_data);
     if (n!=0) {
-      starting_direction_ = Eigen::Vector3f(NAN, NAN, NAN);
+      starting_direction_ = tree_[origin].getSetpoint();
     } else {
-      printf("Previous starting direction %f %f %f \n", starting_direction_.x(), starting_direction_.y(), starting_direction_.z());
+      // printf("***************8 Previous direction %f %f %f \n", starting_direction_.x(), starting_direction_.y(), starting_direction_.z());
     }
     getBestCandidatesFromCostMatrix(cost_matrix, children_per_node_, candidate_vector, starting_direction_, position_);
+    // std::cout << cost_matrix << std::endl;
+    // printf("\n&&&&&&&&&&&&&&&&&&&&&&\n");
+
+    PolarPoint best_candidate_polar = PolarPoint(candidate_vector[0].elevation_angle, candidate_vector[0].azimuth_angle, 1.f);
+    wrapPolar(best_candidate_polar);
+    Eigen::Vector2i histogram_index = polarToHistogramIndex(best_candidate_polar, ALPHA_RES);
+
+    // for (int el = -1; el <= 1; el++) {
+    //   for (int az = -3; az <= 3; az++) {
+    //     std::cout << cost_matrix(histogram_index.y() + el, histogram_index.x() + az) << " ";
+    //   }
+    //   printf("\n" );
+    // }
+    // printf("\n &&&&&&&&&&&&&&&&&&&&&&\n");
 
     // add candidates as nodes
     if (candidate_vector.empty()) {
@@ -101,17 +116,26 @@ void StarPlanner::buildLookAheadTree() {
         std::vector<simulation_state> trajectory = sim.generate_trajectory(candidate.toEigen(), tree_node_duration_);
 
         // check if another close node has been added
+        float dist = 1.f;
         int close_nodes = 0;
         for (size_t i = 0; i < tree_.size(); i++) {
-          float dist = (tree_[i].getPosition() - trajectory.back().position).norm();
+          dist = (tree_[i].getPosition() - trajectory.back().position).norm();
           if (dist < 0.2f) {
             close_nodes++;
             break;
           }
         }
+        // printf("candidate e %f z %f dist %f \n", candidate.elevation_angle, candidate.azimuth_angle, dist);
+        if (n == 0) {
+          // printf("node %f %f %f close %d child %d \n", candidate.toEigen().x(), candidate.toEigen().y(), candidate.toEigen().z(),
+          // close_nodes, children < (children_per_node_));
+          Eigen::Vector2f candidate_dir = candidate.toEigen().head<2>();
+          Eigen::Vector2f prev_init_dir_2f = starting_direction_.head<2>();
+          float angle = 0.f;
+          float add = costChangeInTreeDirection(prev_init_dir_2f, candidate_dir, angle);
+          // printf("cost %f angle diff %f cost angle diff %f \n", candidate.cost, angle, add);
+        }
 
-        // printf("node %f %f %f cost %f close %d %d \n", candidate.toEigen().x(), candidate.toEigen().y(), candidate.toEigen().z(),
-        // candidate.cost, close_nodes, children < (children_per_node_));
 
         if (children < (children_per_node_) && close_nodes == 0) {
           tree_.push_back(TreeNode(origin, trajectory.back(), candidate.toEigen()));
@@ -119,15 +143,17 @@ void StarPlanner::buildLookAheadTree() {
           tree_.back().heuristic_ = h;
           tree_.back().total_cost_ = tree_[origin].total_cost_ - tree_[origin].heuristic_ + candidate.cost + h;
 
-          if (n==0) {
-            printf("AddTree origin %d node %f %f %f cost %f h %f \n", origin, candidate.toEigen().x(), candidate.toEigen().y(), candidate.toEigen().z(),
-            tree_.back().total_cost_, h);
-            Eigen::Vector2f candidate_dir = candidate.toEigen().head<2>();
-            Eigen::Vector2f prev_init_dir_2f = starting_direction_.head<2>();
-            float angle = 0.f;
-            float add = costChangeInTreeDirection(prev_init_dir_2f, candidate_dir, angle);
-            printf("angle diff %f cost %f \n", angle, add);
-          }
+          // if (n==0) {
+          //   printf("Added to tree, tot cost %f h %f \n", tree_.back().total_cost_, h);
+          // }
+            // printf("AddTree origin %d node %f %f %f (%d) cost %f h %f \n", origin, candidate.toEigen().x(), candidate.toEigen().y(), candidate.toEigen().z(),
+            // tree_.size() -1, tree_.back().total_cost_, h);
+            // Eigen::Vector2f candidate_dir = candidate.toEigen().head<2>();
+            // Eigen::Vector2f prev_init_dir_2f = starting_direction_.head<2>();
+            // float angle = 0.f;
+            // float add = costChangeInTreeDirection(prev_init_dir_2f, candidate_dir, angle);
+            // printf("angle diff %f cost %f \n", angle, add);
+          // }
           children++;
         }
       }
@@ -185,18 +211,22 @@ void StarPlanner::buildLookAheadTree() {
   path_node_setpoints_.clear();
   while (tree_end > 0) {
     path_node_setpoints_.push_back(tree_[tree_end].getSetpoint());
-    // if (tree_[tree_end].origin_ == 0) {
-    //   starting_direction_ = tree_[tree_end].getSetpoint();
-    // }
+
+    float angle = 0.f;
+    Eigen::Vector2f prev_init_dir_2f = tree_[tree_[tree_end].origin_].getSetpoint().head<2>();
+    Eigen::Vector2f candidate_dir = path_node_setpoints_.back().head<2>();
+    float add = costChangeInTreeDirection(prev_init_dir_2f, candidate_dir, angle);
+    printf("(%f %f %f, %d, %d, %f) ", path_node_setpoints_.back().x(), path_node_setpoints_.back().y(), path_node_setpoints_.back().z(),
+    tree_[tree_end].origin_, tree_end, angle);
     tree_end = tree_[tree_end].origin_;
   }
 
 
   path_node_setpoints_.push_back(tree_[0].getSetpoint());
   starting_direction_ = path_node_setpoints_[path_node_setpoints_.size() - 2];
-  for (size_t i = 0; i < path_node_setpoints_.size(); i++) {
-    printf("(%f %f %f) ", path_node_setpoints_[i].x(), path_node_setpoints_[i].y(), path_node_setpoints_[i].z());
-  }
+  // for (size_t i = 0; i < path_node_setpoints_.size(); i++) {
+  //   printf("(%f %f %f) ", path_node_setpoints_[i].x(), path_node_setpoints_[i].y(), path_node_setpoints_[i].z());
+  // }
   printf("\n" );
 }
 }
