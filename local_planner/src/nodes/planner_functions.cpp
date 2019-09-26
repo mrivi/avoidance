@@ -285,7 +285,6 @@ void getBestCandidatesFromCostMatrix(const Eigen::MatrixXf& matrix, unsigned int
 
 float costChangeInTreeDirection(Eigen::Vector2f &prev_direction, Eigen::Vector2f &curr_direction, float &init_angle) {
   init_angle = atan2(curr_direction.y(), curr_direction.x()) - atan2(prev_direction.y(), prev_direction.x());
-  // if (init_angle < 0.f) { init_angle += (2.f * M_PI_F); }
   if (init_angle > M_PI_F) {
     init_angle -= 2 * M_PI_F;
   } else if (init_angle <= -M_PI_F) {
@@ -396,7 +395,7 @@ std::pair<float, float> costFunction(const PolarPoint& candidate_polar, float ob
   const float yaw_to_line_cost = weight * cost_params.yaw_cost_param * angle_diff_to_line * angle_diff_to_line;
   const float pitch_cost =
       cost_params.pitch_cost_param * (candidate_polar.e - facing_goal.e) * (candidate_polar.e - facing_goal.e);
-  const float d = 2.f + cost_params.obstacle_cost_param - obstacle_distance;
+  const float d = cost_params.obstacle_cost_param - obstacle_distance;
   const float distance_cost = obstacle_distance > 0.f ? 1000.0f * (1 + d / sqrt(1 + d * d)) : 0.0f;
 
   return std::pair<float, float>(distance_cost, yaw_cost + yaw_to_line_cost + pitch_cost);

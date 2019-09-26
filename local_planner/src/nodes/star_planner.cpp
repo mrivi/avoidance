@@ -87,10 +87,6 @@ void StarPlanner::buildLookAheadTree() {
     }
     getBestCandidatesFromCostMatrix(cost_matrix, children_per_node_, candidate_vector, starting_direction_, position_);
 
-    // PolarPoint best_candidate_polar = PolarPoint(candidate_vector[0].elevation_angle, candidate_vector[0].azimuth_angle, 1.f);
-    // wrapPolar(best_candidate_polar);
-    // Eigen::Vector2i histogram_index = polarToHistogramIndex(best_candidate_polar, ALPHA_RES);
-
     simulation_limits limits = lims_;
     simulation_state state = tree_[origin].state;
     limits.max_xy_velocity_norm =
@@ -182,13 +178,6 @@ void StarPlanner::buildLookAheadTree() {
   path_node_setpoints_.clear();
   while (tree_end > 0) {
     path_node_setpoints_.push_back(tree_[tree_end].getSetpoint());
-
-    // float angle = 0.f;
-    // Eigen::Vector2f prev_init_dir_2f = tree_[tree_[tree_end].origin_].getSetpoint().head<2>();
-    // Eigen::Vector2f candidate_dir = path_node_setpoints_.back().head<2>();
-    // float add = costChangeInTreeDirection(prev_init_dir_2f, candidate_dir, angle);
-    // printf("(%f %f %f, %d, %d, %f) ", path_node_setpoints_.back().x(), path_node_setpoints_.back().y(), path_node_setpoints_.back().z(),
-    // tree_[tree_end].origin_, tree_end, angle);
     tree_end = tree_[tree_end].origin_;
   }
 
@@ -196,6 +185,5 @@ void StarPlanner::buildLookAheadTree() {
   path_node_setpoints_.push_back(tree_[0].getSetpoint());
   starting_direction_ = path_node_setpoints_[path_node_setpoints_.size() - 2];
 
-  // printf("\n" );
 }
 }
