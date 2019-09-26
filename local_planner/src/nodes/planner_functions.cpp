@@ -232,7 +232,7 @@ void getBestCandidatesFromCostMatrix(const Eigen::MatrixXf& matrix, unsigned int
                                      std::vector<candidateDirection>& candidate_vector, const Eigen::Vector3f prev_init_dir,
                                    const Eigen::Vector3f pos) {
   std::priority_queue<candidateDirection, std::vector<candidateDirection>, std::less<candidateDirection>> queue;
-  // printf("-----------------------------------\n" );
+
   for (int row_index = 0; row_index < matrix.rows(); row_index++) {
     for (int col_index = 0; col_index < matrix.cols(); col_index++) {
       PolarPoint p_pol = histogramIndexToPolar(row_index, col_index, ALPHA_RES, 1.0);
@@ -244,19 +244,7 @@ void getBestCandidatesFromCostMatrix(const Eigen::MatrixXf& matrix, unsigned int
         float angle = 0.f;
         float add = costChangeInTreeDirection(prev_init_dir_2f, candidate_dir, angle);
         candidate.cost += add;
-        // init_angle = atan2(candidate_dir.y(), candidate_dir.x()) - atan2(prev_init_dir_2f.y(), prev_init_dir_2f.x());
-        // if (init_angle < 0.f) { init_angle += (2.f * M_PI_F); }
-        // init_angle *= RAD_TO_DEG;
-        // init_angle = acos(candidate_dir.dot(prev_init_dir_2f) / (candidate_dir.norm() * prev_init_dir_2f.norm())) * RAD_TO_DEG;
-        // printf("prev %f %f cand %f %f angle %f \n", prev_init_dir.x(), prev_init_dir.y(),
-        // candidate_dir.x(), candidate_dir.y(), angle);
-        // float add = (init_angle > 90.f) ? 5000.f * init_angle : 0.f;
-        // printf("init angle %f cost %f %f \n", init_angle,   candidate.cost,   candidate.cost+ add);
       }
-      // float add = init_angle > 10.f ? (5000.f / (1.f + std::exp((-init_angle + 10.f) / 20.f))) : 0.f;
-      // if (init_angle > 89.f) {
-      //   add = FLT_MAX;
-      // }
       if (queue.size() < number_of_candidates) {
         queue.push(candidate);
       } else if (candidate < queue.top()) {
@@ -277,16 +265,10 @@ void getBestCandidatesFromCostMatrix(const Eigen::MatrixXf& matrix, unsigned int
     if (!prev_init_dir.array().hasNaN()) {
       Eigen::Vector2f candidate_dir = candidate.toEigen().head<2>();
       Eigen::Vector2f prev_init_dir_2f = prev_init_dir.head<2>();
-      // float init_angle = atan2(candidate_dir.y(), candidate_dir.x()) - atan2(prev_init_dir_2f.y(), prev_init_dir_2f.x());
-      // if (init_angle < 0.f) { init_angle += (2.f * M_PI_F); }
-      // init_angle *= RAD_TO_DEG;
-      // float add = init_angle > 10.f ? (5000.f / (1.f + std::exp((-init_angle + 10.f) / 20.f))) : 0.f;
       float angle = 0.f;
       float add = costChangeInTreeDirection(prev_init_dir_2f, candidate_dir, angle);
       candidate.cost += add;
     }
-    // printf("Added candidate position %f %f %f cost %f \n", candidate.toEigen().x(), candidate.toEigen().y(),
-    // candidate.toEigen().z(), candidate.cost);
     queue.push(candidate);
   }
 
@@ -407,7 +389,7 @@ std::pair<float, float> costFunction(const PolarPoint& candidate_polar, float ob
 
   float weight = 0.f;  // yaw cost partition between back to line previous-current goal and goal
   if (!is_obstacle_facing_goal) {
-    weight = 0.5f;
+    weight = 0.25f;
   }
 
   const float yaw_cost = (1.f - weight) * cost_params.yaw_cost_param * angle_diff * angle_diff;
@@ -417,11 +399,7 @@ std::pair<float, float> costFunction(const PolarPoint& candidate_polar, float ob
   const float d = 2.f + cost_params.obstacle_cost_param - obstacle_distance;
   const float distance_cost = obstacle_distance > 0.f ? 1000.0f * (1 + d / sqrt(1 + d * d)) : 0.0f;
 
-
-  // y2 = 10000.0 * (1 / (1 + np.exp((-5*d + 5))))
-  // const float distance_cost = obstacle_distance > 0.f ? 10000.0f * (1.f / (1.f + std::exp(-cost_params.obstacle_cost_param * d + cost_params.obstacle_cost_param))) : 0.0f;
-
-  return std::pair<float, float>(distance_cost, velocity_cost + yaw_cost + yaw_to_line_cost + pitch_cost);
+  return std::pair<float, float>(distance_cost, yaw_cost + yaw_to_line_cost + pitch_cost);
 }
 
 bool interpolateBetweenSetpoints(const std::vector<Eigen::Vector3f>& setpoint_array,

@@ -40,8 +40,8 @@ void StarPlanner::setPointcloud(const pcl::PointCloud<pcl::PointXYZI>& cloud) { 
 void StarPlanner::setClosestPointOnLine(const Eigen::Vector3f& closest_pt) { closest_pt_ = closest_pt; }
 
 float StarPlanner::treeHeuristicFunction(int node_number) const {
-  return (goal_ - tree_[node_number].getPosition()).norm() * tree_heuristic_weight_;
-  // return ((goal_ - tree_[node_number].getPosition()).norm() / lims_.max_xy_velocity_norm + tree_[node_number].state.time)* tree_heuristic_weight_;
+  // return (goal_ - tree_[node_number].getPosition()).norm() * tree_heuristic_weight_;
+  return ((goal_ - tree_[node_number].getPosition()).norm() / lims_.max_xy_velocity_norm + tree_[node_number].state.time) * tree_heuristic_weight_;
 }
 
 void StarPlanner::buildLookAheadTree() {
@@ -65,7 +65,6 @@ void StarPlanner::buildLookAheadTree() {
   start_state.time = ros::Time::now().toSec();
   tree_.push_back(TreeNode(0, start_state, Eigen::Vector3f::Zero()));
   tree_.back().setCosts(treeHeuristicFunction(0), treeHeuristicFunction(0));
-  printf("*************************\n" );
 
   int origin = 0;
   for (int n = 0; n < n_expanded_nodes_ && is_expanded_node; n++) {
@@ -85,24 +84,19 @@ void StarPlanner::buildLookAheadTree() {
                   closest_pt_, max_sensor_range_, min_sensor_range_, cost_matrix, cost_image_data);
     if (n!=0) {
       starting_direction_ = tree_[origin].getSetpoint();
-    } else {
-      // printf("***************8 Previous direction %f %f %f \n", starting_direction_.x(), starting_direction_.y(), starting_direction_.z());
     }
     getBestCandidatesFromCostMatrix(cost_matrix, children_per_node_, candidate_vector, starting_direction_, position_);
-    // std::cout << cost_matrix << std::endl;
-    // printf("\n&&&&&&&&&&&&&&&&&&&&&&\n");
 
-    PolarPoint best_candidate_polar = PolarPoint(candidate_vector[0].elevation_angle, candidate_vector[0].azimuth_angle, 1.f);
-    wrapPolar(best_candidate_polar);
-    Eigen::Vector2i histogram_index = polarToHistogramIndex(best_candidate_polar, ALPHA_RES);
+    // PolarPoint best_candidate_polar = PolarPoint(candidate_vector[0].elevation_angle, candidate_vector[0].azimuth_angle, 1.f);
+    // wrapPolar(best_candidate_polar);
+    // Eigen::Vector2i histogram_index = polarToHistogramIndex(best_candidate_polar, ALPHA_RES);
 
-    // for (int el = -1; el <= 1; el++) {
-    //   for (int az = -3; az <= 3; az++) {
-    //     std::cout << cost_matrix(histogram_index.y() + el, histogram_index.x() + az) << " ";
-    //   }
-    //   printf("\n" );
-    // }
-    // printf("\n &&&&&&&&&&&&&&&&&&&&&&\n");
+    simulation_limits limits = lims_;
+    simulation_state state = tree_[origin].state;
+    limits.max_xy_velocity_norm =
+        std::min(computeMaxSpeedFromBrakingDistance(lims_.max_jerk_norm, lims_.max_acceleration_norm,
+                                                    (state.position - goal_).head<2>().norm()),
+                 lims_.max_xy_velocity_norm);
 
     // add candidates as nodes
     if (candidate_vector.empty()) {
@@ -112,7 +106,7 @@ void StarPlanner::buildLookAheadTree() {
       int children = 0;
       for (candidateDirection candidate : candidate_vector) {
         simulation_state state = tree_[origin].state;
-        TrajectorySimulator sim(lims_, state, 0.05f);  // todo: parameterize simulation step size [s]
+        TrajectorySimulator sim(limits, state, 0.05f);  // todo: parameterize simulation step size [s]
         std::vector<simulation_state> trajectory = sim.generate_trajectory(candidate.toEigen(), tree_node_duration_);
 
         // check if another close node has been added
@@ -125,35 +119,12 @@ void StarPlanner::buildLookAheadTree() {
             break;
           }
         }
-        // printf("candidate e %f z %f dist %f \n", candidate.elevation_angle, candidate.azimuth_angle, dist);
-        if (n == 0) {
-          // printf("node %f %f %f close %d child %d \n", candidate.toEigen().x(), candidate.toEigen().y(), candidate.toEigen().z(),
-          // close_nodes, children < (children_per_node_));
-          Eigen::Vector2f candidate_dir = candidate.toEigen().head<2>();
-          Eigen::Vector2f prev_init_dir_2f = starting_direction_.head<2>();
-          float angle = 0.f;
-          float add = costChangeInTreeDirection(prev_init_dir_2f, candidate_dir, angle);
-          // printf("cost %f angle diff %f cost angle diff %f \n", candidate.cost, angle, add);
-        }
-
 
         if (children < (children_per_node_) && close_nodes == 0) {
           tree_.push_back(TreeNode(origin, trajectory.back(), candidate.toEigen()));
           float h = treeHeuristicFunction(tree_.size() - 1);
           tree_.back().heuristic_ = h;
           tree_.back().total_cost_ = tree_[origin].total_cost_ - tree_[origin].heuristic_ + candidate.cost + h;
-
-          // if (n==0) {
-          //   printf("Added to tree, tot cost %f h %f \n", tree_.back().total_cost_, h);
-          // }
-            // printf("AddTree origin %d node %f %f %f (%d) cost %f h %f \n", origin, candidate.toEigen().x(), candidate.toEigen().y(), candidate.toEigen().z(),
-            // tree_.size() -1, tree_.back().total_cost_, h);
-            // Eigen::Vector2f candidate_dir = candidate.toEigen().head<2>();
-            // Eigen::Vector2f prev_init_dir_2f = starting_direction_.head<2>();
-            // float angle = 0.f;
-            // float add = costChangeInTreeDirection(prev_init_dir_2f, candidate_dir, angle);
-            // printf("angle diff %f cost %f \n", angle, add);
-          // }
           children++;
         }
       }
@@ -212,21 +183,19 @@ void StarPlanner::buildLookAheadTree() {
   while (tree_end > 0) {
     path_node_setpoints_.push_back(tree_[tree_end].getSetpoint());
 
-    float angle = 0.f;
-    Eigen::Vector2f prev_init_dir_2f = tree_[tree_[tree_end].origin_].getSetpoint().head<2>();
-    Eigen::Vector2f candidate_dir = path_node_setpoints_.back().head<2>();
-    float add = costChangeInTreeDirection(prev_init_dir_2f, candidate_dir, angle);
-    printf("(%f %f %f, %d, %d, %f) ", path_node_setpoints_.back().x(), path_node_setpoints_.back().y(), path_node_setpoints_.back().z(),
-    tree_[tree_end].origin_, tree_end, angle);
+    // float angle = 0.f;
+    // Eigen::Vector2f prev_init_dir_2f = tree_[tree_[tree_end].origin_].getSetpoint().head<2>();
+    // Eigen::Vector2f candidate_dir = path_node_setpoints_.back().head<2>();
+    // float add = costChangeInTreeDirection(prev_init_dir_2f, candidate_dir, angle);
+    // printf("(%f %f %f, %d, %d, %f) ", path_node_setpoints_.back().x(), path_node_setpoints_.back().y(), path_node_setpoints_.back().z(),
+    // tree_[tree_end].origin_, tree_end, angle);
     tree_end = tree_[tree_end].origin_;
   }
 
 
   path_node_setpoints_.push_back(tree_[0].getSetpoint());
   starting_direction_ = path_node_setpoints_[path_node_setpoints_.size() - 2];
-  // for (size_t i = 0; i < path_node_setpoints_.size(); i++) {
-  //   printf("(%f %f %f) ", path_node_setpoints_[i].x(), path_node_setpoints_[i].y(), path_node_setpoints_[i].z());
-  // }
-  printf("\n" );
+
+  // printf("\n" );
 }
 }
